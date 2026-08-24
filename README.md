@@ -7,11 +7,18 @@ esperada. Herramienta de aprendizaje personal, en español.
 ## Correr
 
 ```bash
+cp .env.example .env   # y llenar las dos variables
 npm install
 npm run dev      # servidor de desarrollo
 npm run build    # build de producción en dist/
 npm run preview  # servir el build
 ```
+
+`VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` (la clave *publishable*) son las
+únicas variables que la app usa, y las dos terminan dentro del bundle: Vite
+inyecta todo lo que empieza por `VITE_`. Eso es correcto para la publishable y
+sería un desastre para la clave de servicio, que nunca debe llevar ese prefijo.
+Sin esas variables la app arranca igual, avisa por consola y no guarda nada.
 
 ## Cómo está organizado
 
@@ -21,6 +28,16 @@ src/
   data/ejercicios.js          Los 18 ejercicios: hecho, líneas esperadas y nota explicativa.
   logica/verificar.js         Comparación sin importar el orden + totales de la balanza.
   hooks/useProgreso.js        Persistencia en localStorage, tolerante a fallos.
+  hooks/useParticipante.js    Identidad de la sesión: alta en el landing y localStorage.
+  logica/registro.js          Validación de nombre y correo, espejo de la del servidor.
+  lib/supabase.js             Cliente, solo con la clave publishable.
+  lib/respuestas.js           Envío de cada respuesta + cola de reintento.
+  componentes/Landing.jsx     La puerta: nombre y correo antes de los ejercicios.
+  componentes/Resultados.jsx  Tablero público con Recharts. Se carga aparte (lazy).
+  componentes/DetalleEnvios   Cada envío con el asiento tal como se escribió.
+  hooks/useResultados.js      Carga + eventos en vivo + reconciliación periódica.
+  lib/resultados.js           Lectura pública y suscripción al canal Broadcast.
+  logica/tablero.js           Derivaciones puras del tablero (resumen, por ejercicio…).
   componentes/                Backlog, LineaAsiento, Balanza, Retroalimentacion, CuentasT.
   componentes/LogoFailFast    Lockup de marca, recoloreado para fondo negro.
   estilos/fail-fast-tokens.css Tokens del design system de Fail Fast (dark only).
@@ -78,6 +95,159 @@ titular hero, y esta herramienta no tiene hero — el acento ya vive en el logo 
 El logo viene de `failfast-logo-black.svg`. Sobre negro, sus dos colores se resuelven
 como el sistema indica: el lockup `#222222` pasa a `currentColor` (blanco) y el
 acento `#4867FF` sube al primario de modo oscuro `#5c78ff`.
+
+## Captura de respuestas
+
+Nadie llega a los ejercicios sin dejar nombre y correo: el landing es una puerta,
+no un banner que se pueda cerrar. Y cada asiento se guarda **en el momento de
+enviarlo**, no al terminar los 18 — quien abandona en el ejercicio 4 deja
+registrados sus cuatro intentos, que es justamente el dato que dice dónde se
+traba la práctica.
+
+### El modelo
+
+```
+participantes  1 ── N  respuestas  N ── 1  ejercicios
+                        │
+                        └── 1 ── N  respuesta_lineas
+```
+
+| Tabla | Una fila es… |
+| --- | --- |
+| `participantes` | Una persona. Identidad única por correo, normalizado a minúsculas. |
+| `ejercicios` | Uno de los 18. Espejo de `src/data/ejercicios.js`. |
+| `respuestas` | **Un envío**: quién, qué ejercicio, qué número de intento y si acertó. |
+| `respuesta_lineas` | Una línea del asiento tal como la escribió la persona. |
+
+**Las líneas son filas, no un blob JSON.** Un asiento contable ya es una
+relación: cada línea tiene cuenta, cuenta padre, lado y monto. Guardarlo como
+JSON obligaría a desarmarlo en cada consulta; así, «qué cuenta se confunde más»
+o «en qué lado se equivoca la gente» son un `group by`.
+
+**Cada intento se guarda entero, no se pisa.** Reintentar es parte del ejercicio,
+y la secuencia de intentos —qué cambió entre el primero y el segundo— dice más
+que el resultado final. Por eso `respuestas` lleva un contador `intento` único
+por persona y ejercicio, y no un `upsert`.
+
+**No se guardan los asientos incompletos.** Si faltan campos, `verificarAsiento`
+devuelve `incompleto` y no hubo respuesta que registrar: solo se envían los
+`correcto` e `incorrecto`.
+
+### Por qué el cliente no toca las tablas
+
+La app es una SPA sin login. Con la clave publishable no hay usuario autenticado
+y por lo tanto no hay forma honesta de escribir una política de RLS por fila. La
+salida es la contraria: **RLS activo y sin políticas en las cuatro tablas** —todo
+acceso directo desde `anon` queda denegado, incluida la lectura de correos— y las
+escrituras pasan por dos funciones `SECURITY DEFINER` con `search_path` fijo:
+
+- `registrar_participante(nombre, email)` → devuelve el `uuid`. Idempotente por
+  correo: volver a entrar con el mismo continúa el mismo historial.
+- `registrar_respuesta(participante_id, ejercicio_id, es_correcta, lineas)` →
+  escribe la cabecera y sus líneas en una sola transacción.
+
+Las dos validan y normalizan lo que reciben, y ninguna devuelve datos de
+terceros. El linter de Supabase marca ambas como «ejecutables por anon»: es
+intencional, es exactamente el flujo. Para leer los datos está la vista
+`vista_respuestas` (`security_invoker`, así que hereda ese mismo RLS y solo la
+ven los roles que ya pueden leer las tablas).
+
+**El límite conocido:** quien sepa un correo puede pedir su `uuid` y escribir
+respuestas a nombre de esa persona. Para una herramienta de práctica el costo de
+un login real no se justifica; si algún día estos datos tienen que ser confiables,
+la respuesta es Supabase Auth y políticas contra `auth.uid()`, no parchar esto.
+
+### Si falla la red
+
+`lib/respuestas.js` manda cada envío al instante y, si falla, lo deja en una cola
+en localStorage que se reintenta con el siguiente envío y al abrir la app. Los
+rechazos del servidor por datos inválidos se descartan en vez de reintentarse
+para siempre. Verificar el asiento nunca depende de que el guardado funcione:
+misma regla que el progreso en localStorage.
+
+Las migraciones están aplicadas en el proyecto de Supabase
+(`crear_modelo_participantes_respuestas`, `crear_rpc_registro_y_respuestas`,
+`sembrar_catalogo_ejercicios`, `crear_vista_respuestas_detalle`).
+
+## Tablero de resultados
+
+Segunda vista de la app, en la pestaña **Resultados** de la cabecera. Se filtra
+por participante y muestra, en vivo, qué preguntas acertó cada quien y cuáles no.
+
+**Es público de verdad:** se abre desde el landing sin registrarse. Practicar sí
+exige dejar nombre y correo; mirar, no.
+
+**El correo nunca sale del servidor.** La carga pública trae `id_publico`,
+`nombre`, ejercicio, intento, estado y las líneas del asiento — y nada más. No
+hay una consulta que lo devuelva, porque `resultados_publicos()` no lo
+construye. Si dos personas se llaman igual, se distinguen con un sufijo corto
+del id público, no con el correo.
+
+### Publicar obligó a partir la identidad en dos
+
+Hasta ahora `participantes.id` era a la vez identidad y credencial: quien lo
+tuviera podía escribir respuestas a nombre de esa persona. Mientras nada era
+público daba igual, porque sólo lo conocía su dueño. Al publicar el tablero ese
+id habría viajado a todos los navegadores, y cualquiera podría haber firmado
+asientos con el nombre de otro.
+
+Por eso ahora hay dos:
+
+| Columna | Quién lo ve | Para qué sirve |
+| --- | --- | --- |
+| `id` | sólo su dueño | escribir respuestas |
+| `id_publico` | todo el mundo | agrupar y filtrar en el tablero |
+
+`id_publico_propio(id)` traduce en un solo sentido, privado → público, y sólo
+puede llamarlo quien ya tiene el privado. Al revés no hay función: eso es lo que
+impide convertir un id del tablero en credencial.
+
+### En vivo sin abrir las tablas
+
+Las cuatro tablas siguen con RLS activo y sin políticas. En vez de suscribir el
+navegador a cambios de tabla —que habría obligado a dar `SELECT` sobre datos que
+incluyen el id privado— `registrar_respuesta` y `registrar_participante` emiten
+por **Broadcast** una carga armada a mano, con los mismos campos que devuelve la
+lectura pública. El cliente la agrega a lo que ya tiene.
+
+Emitir nunca puede tumbar una escritura: las dos llamadas a `realtime.send` van
+dentro de un `exception when others then null`. Si Realtime está caído, la
+respuesta igual queda guardada.
+
+**El flujo de eventos no es confiable por sí solo.** Entre que `subscribe()`
+responde `SUBSCRIBED` y el servidor engancha el tópico hay unos cientos de
+milisegundos en los que un evento se pierde — medido, no supuesto. Por eso
+`useResultados` recarga todo cada 60 s y al volver a la pestaña: los eventos
+hacen que se sienta inmediato, la recarga garantiza que esté completo. La
+recarga compara una firma barata antes de reemplazar el estado, para no
+redibujar los gráficos cada minuto sin motivo.
+
+### La paleta se calculó, no se eligió a ojo
+
+Acierto en verde `--ff-success`, error en rojo `--ff-danger`. El par tiene un
+costo medido: bajo deuteranopía los dos se separan apenas **ΔE 5.9** (contra
+26.4 en visión normal), así que el color por sí solo no le dice nada a quien no
+distingue rojo de verde — que es justo lo único que el gráfico tiene que decir.
+
+El color nunca va solo. Cuatro señales cargan el mismo significado:
+
+1. **Trama diagonal** en la serie de errores, legible en blanco y negro.
+2. **Separador de 2 px** del color de la superficie entre segmentos apilados.
+3. **Leyenda siempre visible** y rótulo de texto ("Acertada" / "Errónea") en cada envío.
+4. **Vista de tabla** con los mismos números, a un clic.
+
+Si alguna de las cuatro se cae, el gráfico deja de ser legible para cerca del 8 %
+de los hombres. No son adornos.
+
+El ámbar quedó para lo que **no** es un error: el punto de "reconectando" del
+indicador en vivo, y el `errado` del backlog, que significa "intentado, aún sin
+resolver" y no "respuesta equivocada".
+
+### Peso
+
+Recharts arrastra Redux, immer y d3: pesa más que toda la app junta. Se carga con
+`React.lazy`, así que sale en su propio archivo y sólo lo descarga quien abre el
+tablero. El bundle de quien viene a practicar creció 4 kB.
 
 ## Decisiones que no son accidentales
 

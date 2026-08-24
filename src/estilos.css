@@ -141,6 +141,99 @@ select {
   flex-direction: column;
 }
 
+/* ── Landing: la puerta ──────────────────────────────────── */
+
+/* Pantalla completa, una sola tarjeta centrada. Sin backlog ni cabecera: en
+   este momento no hay nada que navegar, y cualquier otra cosa en pantalla
+   compite con los dos campos que sí importan. */
+.landing {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--ff-space-6) var(--ff-space-4);
+}
+
+.landing__tarjeta {
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ff-space-6);
+  padding: var(--ff-space-8);
+  background: var(--ff-bg);
+  border: 1px solid var(--ff-border);
+  border-radius: var(--ff-radius-xl);
+}
+
+.landing__intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ff-space-3);
+}
+
+/* Serif del sistema: es el único titular editorial de la app. */
+.landing__titulo {
+  font-family: var(--ff-font-serif);
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: var(--ff-tracking-tight);
+  color: var(--ff-fg-strong);
+  text-wrap: balance;
+}
+
+.landing__bajada {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ff-fg-muted);
+}
+
+.landing__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ff-space-4);
+}
+
+.landing__campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ff-space-2);
+}
+
+.landing__campo .entrada[aria-invalid='true'] {
+  border-color: var(--ff-danger);
+}
+
+.landing__error {
+  font-size: var(--ff-text-xs);
+  line-height: 1.5;
+  color: var(--ff-danger-fg);
+}
+
+/* El error de servidor reserva su renglón: sin esto la tarjeta da un salto
+   cuando falla la red. */
+.landing__error--bloque:empty {
+  display: none;
+}
+
+.landing__cta {
+  justify-content: center;
+  width: 100%;
+}
+
+.landing__nota {
+  font-size: var(--ff-text-xs);
+  line-height: 1.6;
+  color: var(--ff-fg-subtle);
+}
+
+@media (min-width: 600px) {
+  .landing__titulo {
+    font-size: 34px;
+  }
+}
+
 /* Cabecera píldora: la firma del sitio de Fail Fast — flotante, hairline,
    vidrio esmerilado. */
 .cabecera {
@@ -202,6 +295,24 @@ select {
   display: none;
 }
 
+/* Quién está practicando. Se trunca antes que empujar la píldora: el nombre
+   es contexto, no navegación. */
+.cabecera__sesion {
+  font-size: var(--ff-text-sm);
+  color: var(--ff-fg-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.cabecera__acciones {
+  display: flex;
+  align-items: center;
+  gap: var(--ff-space-2);
+  flex: none;
+}
+
 .cabecera__progreso {
   display: flex;
   align-items: center;
@@ -243,6 +354,454 @@ select {
   background: var(--ff-success);
   border-radius: inherit;
   transition: width var(--ff-dur) var(--ff-ease);
+}
+
+/* ── Tablero de resultados ───────────────────────────────── */
+
+/* Acierto en verde `--ff-success`, error en rojo `--ff-danger`: los dos
+   significados que el sistema ya tenía asignados a esos tokens.
+
+   El costo está medido: bajo deuteranopía verde y rojo se separan apenas
+   ΔE 5.9 (26.4 en visión normal), así que el color por sí solo no le dice nada
+   a quien no distingue rojo de verde. Nunca va solo — trama diagonal en los
+   errores (se lee en blanco y negro), separador de 2px entre segmentos,
+   leyenda y rótulo de texto siempre presentes, y una vista de tabla con los
+   mismos números.
+
+   El ámbar de este archivo queda para lo que NO es un error: el punto de
+   "reconectando" del indicador en vivo. */
+
+.tablero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ff-space-5);
+  min-width: 0;
+}
+
+.tablero__cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--ff-space-3);
+}
+
+/* Indicador de conexión: verde cuando el canal está enganchado, ámbar cuando
+   se está reconectando. Nunca depende sólo del color — el texto al lado dice
+   lo mismo. */
+.tablero__vivo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ff-space-2);
+  font-size: var(--ff-text-xs);
+  color: var(--ff-fg-subtle);
+}
+
+.tablero__punto {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: var(--ff-radius-full);
+  background: var(--ff-warn);
+}
+
+.tablero__vivo[data-vivo='true'] .tablero__punto {
+  background: var(--ff-success);
+}
+
+.tablero__controles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--ff-space-3);
+}
+
+.tablero__filtro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ff-space-2);
+  min-width: 0;
+  flex: 1 1 240px;
+  max-width: 340px;
+}
+
+.tablero__fichas {
+  display: grid;
+  gap: var(--ff-space-3);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr));
+}
+
+.ficha {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ff-space-2);
+  padding: var(--ff-space-4);
+  background: var(--ff-bg);
+  border: 1px solid var(--ff-border);
+  border-radius: var(--ff-radius-lg);
+}
+
+.ficha__valor {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ff-fg-strong);
+}
+
+.ficha__sufijo {
+  font-size: var(--ff-text-sm);
+  font-weight: 400;
+  color: var(--ff-fg-subtle);
+}
+
+.tablero__bloque {
+  padding: var(--ff-space-6);
+  background: var(--ff-bg);
+  border: 1px solid var(--ff-border);
+  border-radius: var(--ff-radius-xl);
+}
+
+.tablero__subtitulo {
+  font-size: var(--ff-text-lg);
+  font-weight: 600;
+  color: var(--ff-fg-strong);
+  margin-bottom: var(--ff-space-4);
+}
+
+.tablero__pie {
+  margin-top: var(--ff-space-3);
+  font-size: var(--ff-text-xs);
+  line-height: 1.55;
+  color: var(--ff-fg-subtle);
+  max-width: 78ch;
+}
+
+.tablero__vacio {
+  font-size: var(--ff-text-sm);
+  color: var(--ff-fg-subtle);
+  padding: var(--ff-space-4) 0;
+}
+
+.tablero__error {
+  font-size: var(--ff-text-sm);
+  color: var(--ff-danger-fg);
+}
+
+.grafico {
+  width: 100%;
+  min-width: 0;
+}
+
+/* ── Franja de estado: 18 estados binarios no son un gráfico ── */
+
+.franja {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(auto-fit, minmax(46px, 1fr));
+}
+
+.franja__celda {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--ff-space-2) 4px;
+  border-radius: var(--ff-radius-sm);
+  border: 1px solid var(--ff-border);
+  background: var(--ff-bg-subtle);
+}
+
+.franja__celda[data-estado='resuelto'] {
+  background: var(--ff-success-bg);
+  border-color: var(--ff-success-border);
+}
+
+/* El error se distingue por la trama, no sólo por el rojo: es la misma señal
+   no cromática que usa el gráfico. */
+.franja__celda[data-estado='errado'] {
+  border-color: var(--ff-danger-border);
+  background: repeating-linear-gradient(
+    45deg,
+    var(--ff-danger-bg),
+    var(--ff-danger-bg) 3px,
+    color-mix(in srgb, var(--ff-danger) 30%, var(--ff-danger-bg)) 3px,
+    color-mix(in srgb, var(--ff-danger) 30%, var(--ff-danger-bg)) 6px
+  );
+}
+
+.franja__num {
+  font-size: var(--ff-text-xs);
+  font-weight: 700;
+  color: var(--ff-fg-subtle);
+}
+
+.franja__celda[data-estado='resuelto'] .franja__num {
+  color: var(--ff-success-fg);
+}
+
+.franja__celda[data-estado='errado'] .franja__num {
+  color: var(--ff-danger-fg);
+}
+
+.franja__envios {
+  font-size: 11px;
+  color: var(--ff-fg-faint);
+}
+
+/* ── Tabla equivalente ───────────────────────────────────── */
+
+.tabla-envoltura {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--ff-text-sm);
+}
+
+.tabla th,
+.tabla td {
+  padding: var(--ff-space-2) var(--ff-space-3);
+  text-align: left;
+  border-bottom: 1px solid var(--ff-border);
+  white-space: nowrap;
+}
+
+.tabla thead th {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ff-fg-subtle);
+}
+
+.tabla tbody th {
+  font-weight: 700;
+  color: var(--ff-fg);
+}
+
+.tabla td {
+  color: var(--ff-fg-muted);
+}
+
+/* ── Globo del gráfico ───────────────────────────────────── */
+
+.globo {
+  max-width: 260px;
+  padding: var(--ff-space-3);
+  background: var(--ff-bg-muted);
+  border: 1px solid var(--ff-border);
+  border-radius: var(--ff-radius-md);
+  font-size: var(--ff-text-xs);
+  line-height: 1.5;
+}
+
+.globo__titulo {
+  font-weight: 700;
+  color: var(--ff-fg-strong);
+}
+
+.globo__hecho {
+  margin: 4px 0 var(--ff-space-2);
+  color: var(--ff-fg-subtle);
+}
+
+.globo__fila {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ff-fg-muted);
+}
+
+.globo__punto {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 2px;
+}
+
+.globo__punto[data-serie='aciertos'] {
+  background: var(--ff-success);
+}
+
+.globo__punto[data-serie='errores'] {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--ff-danger),
+    var(--ff-danger) 2px,
+    var(--ff-danger-fg) 2px,
+    var(--ff-danger-fg) 4px
+  );
+}
+
+/* ── Envíos con su asiento ───────────────────────────────── */
+
+.envios {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ff-space-3);
+}
+
+.envio {
+  padding: var(--ff-space-4);
+  background: var(--ff-bg-subtle);
+  border: 1px solid var(--ff-border);
+  border-left: 2px solid var(--ff-border);
+  border-radius: var(--ff-radius-lg);
+}
+
+.envio[data-estado='correcto'] {
+  border-left-color: var(--ff-success);
+}
+
+.envio[data-estado='incorrecto'] {
+  border-left-color: var(--ff-danger);
+}
+
+.envio__cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ff-space-2);
+  margin-bottom: var(--ff-space-3);
+}
+
+.envio__num {
+  font-size: var(--ff-text-sm);
+  font-weight: 700;
+  color: var(--ff-fg-strong);
+}
+
+.envio__nombre {
+  font-size: var(--ff-text-sm);
+  color: var(--ff-fg);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.envio__intento {
+  font-size: var(--ff-text-xs);
+  color: var(--ff-fg-subtle);
+}
+
+.insignia[data-estado='correcto'] {
+  color: var(--ff-success-fg);
+  background: var(--ff-success-bg);
+  border-color: var(--ff-success-border);
+}
+
+.insignia[data-estado='incorrecto'] {
+  color: var(--ff-danger-fg);
+  background: var(--ff-danger-bg);
+  border-color: var(--ff-danger-border);
+}
+
+.envio__lineas {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.envio__linea {
+  display: grid;
+  gap: 2px var(--ff-space-3);
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto auto;
+  align-items: baseline;
+  padding: 6px var(--ff-space-2);
+  border-radius: var(--ff-radius-xs);
+  background: var(--ff-bg);
+  font-size: var(--ff-text-xs);
+}
+
+.envio__cuenta {
+  color: var(--ff-fg);
+  font-weight: 500;
+}
+
+.envio__padre {
+  color: var(--ff-fg-subtle);
+}
+
+/* El lado se lee por la flecha, no por el color: azul y ciruela casi no
+   difieren en luminosidad y no pueden cargar solos el significado. */
+.envio__lado {
+  color: var(--ff-fg-subtle);
+  white-space: nowrap;
+}
+
+.envio__linea[data-lado='Débito'] .envio__lado {
+  color: var(--debito-fg);
+}
+
+.envio__linea[data-lado='Crédito'] .envio__lado {
+  color: var(--credito-fg);
+}
+
+.envio__monto {
+  text-align: right;
+  font-weight: 600;
+  color: var(--ff-fg-strong);
+}
+
+/* ── Pestañas de vista en la cabecera ────────────────────── */
+
+.cabecera__vistas {
+  display: flex;
+  flex: none;
+  gap: 2px;
+  padding: 3px;
+  background: var(--ff-bg-subtle);
+  border: 1px solid var(--ff-border);
+  border-radius: var(--ff-radius-full);
+}
+
+.cabecera__vista {
+  padding: 6px 14px;
+  border: none;
+  border-radius: var(--ff-radius-full);
+  background: transparent;
+  color: var(--ff-fg-subtle);
+  font-size: var(--ff-text-xs);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--ff-dur) var(--ff-ease), color var(--ff-dur) var(--ff-ease);
+}
+
+.cabecera__vista:hover {
+  color: var(--ff-fg-strong);
+}
+
+.cabecera__vista[aria-pressed='true'] {
+  background: var(--ff-bg-muted);
+  color: var(--ff-fg-strong);
+}
+
+/* ── Salida pública desde el landing ─────────────────────── */
+
+.landing__salida {
+  padding-top: var(--ff-space-4);
+  border-top: 1px solid var(--ff-border);
+  text-align: center;
+}
+
+.landing__enlace {
+  padding: 4px 8px;
+  border: none;
+  background: transparent;
+  color: var(--ff-fg-subtle);
+  font-size: var(--ff-text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: var(--ff-radius-xs);
+  transition: color var(--ff-dur) var(--ff-ease);
+}
+
+.landing__enlace:hover {
+  color: var(--ff-fg-strong);
 }
 
 .cuerpo {
@@ -729,8 +1288,28 @@ select.entrada option {
 .asiento__acciones {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: var(--ff-space-3);
   margin-top: var(--ff-space-5);
+}
+
+/* Aviso del envío a Supabase. Neutro por defecto: guardar es lo esperado y no
+   merece color. Solo el envío que quedó en cola sube al ámbar, que en esta
+   app es el tono de "esto no está terminado". El bloque ocupa su altura
+   siempre para que la fila de botones no salte al aparecer el texto. */
+.asiento__envio {
+  min-height: 1em;
+  font-size: var(--ff-text-xs);
+  color: var(--ff-fg-subtle);
+  transition: color var(--ff-dur) var(--ff-ease);
+}
+
+.asiento__envio[data-envio='guardado'] {
+  color: var(--ff-success-fg);
+}
+
+.asiento__envio[data-envio='pendiente'] {
+  color: var(--ff-warn-fg);
 }
 
 /* ── Botón fantasma (pareja neutra de .ff-cta) ───────────── */
@@ -768,33 +1347,31 @@ select.entrada option {
   border-radius: var(--ff-radius-full);
 }
 
-/* Tinte "demo" del sistema: la acción secundaria, más callada que el primario.
-   Radio 6px y sin borde, tal como lo define el design system. */
-.boton--demo {
-  padding: 11px 16px;
-  border: none;
-  border-radius: var(--ff-radius-sm);
-  background: var(--ff-demo-bg);
-  color: var(--ff-demo-fg);
+/* Botón de salida a ChatGPT, calcado del control "Open in ChatGPT" de la
+   documentación de OpenAI: contorno hairline sobre el fondo de la página,
+   texto de peso medio y el logo a 16px. Queda deliberadamente callado —no
+   compite con la CTA— porque es una ayuda opcional, no el camino que
+   queremos que el alumno tome primero. */
+.boton--chatgpt {
+  padding: 6px 12px;
+  border: 1px solid var(--ff-border-soft);
+  border-radius: var(--ff-radius-lg);
+  background: var(--ff-bg-page);
+  color: var(--ff-fg-muted);
   font-size: var(--ff-text-sm);
-  font-weight: 600;
+  font-weight: 500;
   text-decoration: none;
 }
 
-.boton--demo:hover:not(:disabled) {
-  background: var(--ff-demo-bg-hover);
-  color: var(--ff-demo-fg);
+.boton--chatgpt:hover:not(:disabled) {
+  background: rgba(229, 231, 235, 0.05);
+  color: var(--ff-fg-muted);
 }
 
-.boton--demo .boton__icono {
-  width: 15px;
-  height: 15px;
+.boton--chatgpt .boton__icono {
+  width: 16px;
+  height: 16px;
   flex: none;
-  transition: transform var(--ff-dur) var(--ff-ease);
-}
-
-.boton--demo:hover .boton__icono {
-  transform: translate(2px, -2px);
 }
 
 /* ── Balanza ─────────────────────────────────────────────── */
@@ -1179,6 +1756,11 @@ select.entrada option {
   .cuerpo {
     grid-template-columns: 236px minmax(0, 1fr);
     padding-inline: var(--ff-space-6);
+  }
+
+  /* El tablero no tiene rail al lado: ocupa el ancho completo. */
+  .cuerpo[data-vista='resultados'] {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .backlog {
