@@ -113,10 +113,14 @@ familias (lámina 11) reusa las flechas direccionales del selector de lado del
 asiento: apuntan a la columna donde cae el monto en la cuenta T, que es justo
 lo que remata el cuerpo de la lámina. No tiene columna de "saldo normal": para
 las cinco familias coincide con el lado que aumenta, y verlo dos veces hacía
-dudar de si decían cosas distintas. La lámina 2 es la única que
-usa rojo y verde (`--ff-danger` / `--ff-success`), y ahí el color es el contenido
-que se enseña; aun así el signo `+` / `−` y un rótulo oculto dicen lo mismo, según
-la regla de que el color nunca va solo.
+dudar de si decían cosas distintas. Dos láminas se salen de los tres
+colores de la baraja, y en las dos el color es el contenido que se enseña, no
+adorno: la 2 usa rojo y verde (`--ff-danger` / `--ff-success`) para entradas y
+salidas, y la 11 pinta débito y crédito con la escala semántica de la app
+(`--debito` azul y `--credito` ciruela), la misma que el aprendiz verá en el
+asiento apenas cierre la baraja. En ninguna va solo el color: la 2 lleva el
+signo `+` / `−` más un rótulo oculto, y las fichas de la 11 llevan la flecha de
+"aumenta" y la palabra del lado escrita.
 
 El diálogo es `<dialog>` nativo abierto con `showModal()`, que regala trampa de
 foco, cierre con Escape, inertizado del fondo y capa superior. Lo único que hay

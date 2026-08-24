@@ -171,6 +171,64 @@
   color: var(--dk-accent);
 }
 
+/* ── Las cinco familias, en fichas ───────────────────────── */
+
+/* Rejilla y no flujo: las fichas quedan en columna, y así las dos de débito
+   se leen como un bloque y las tres de crédito como otro. El ancho corto las
+   mantiene cerca del nombre en vez de mandarlas al borde de la columna. */
+.aprende__familias {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px var(--ff-space-3);
+  max-width: 340px;
+}
+
+.aprende__familias li {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: center;
+}
+
+.aprende__familia {
+  font-weight: 500;
+}
+
+/* Débito y crédito toman la escala semántica de la app —azul y ciruela—, la
+   misma que verán en el asiento apenas cierren la baraja. El color no va
+   solo: la ficha lleva la flecha de "aumenta" y la palabra del lado. */
+.aprende__ficha {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px 5px 9px;
+  border: 1px solid;
+  border-radius: var(--ff-radius-full);
+  font-size: var(--ff-text-sm);
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.aprende__ficha[data-lado='Débito'] {
+  background: var(--debito-bg);
+  border-color: var(--debito-borde);
+  color: var(--debito-fg);
+}
+
+.aprende__ficha[data-lado='Crédito'] {
+  background: var(--credito-bg);
+  border-color: var(--credito-borde);
+  color: var(--credito-fg);
+}
+
+.aprende__ficha-flecha {
+  width: 13px;
+  height: 13px;
+  flex: none;
+}
+
 /* ── Visual ──────────────────────────────────────────────── */
 
 .aprende__visual {
@@ -539,11 +597,11 @@
 }
 
 .dg__lado-celda[data-lado='Débito'] {
-  color: var(--dk-accent);
+  color: var(--debito-fg);
 }
 
 .dg__lado-celda[data-lado='Crédito'] {
-  color: var(--dk-fg-muted);
+  color: var(--credito-fg);
 }
 
 .dg__flecha-lado {

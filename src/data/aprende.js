@@ -7,8 +7,9 @@
  * coincidencia de texto se rompe con tildes, con la palabra repetida y con los
  * signos de la ecuación. Marcarlo aquí es explícito y no tiene casos borde.
  *
- * El cuerpo son bloques y no un párrafo suelto porque tres láminas alternan
- * prosa y lista numerada, y la numeración es contenido (01, 02, 03), no viñeta.
+ * El cuerpo son bloques y no un párrafo suelto porque varias láminas alternan
+ * prosa con una lista numerada —la numeración es contenido (01, 02, 03), no
+ * viñeta— o con el bloque `familias`, que se arma solo desde FAMILIAS.
  *
  * `visual` nombra un diagrama construido en el propio componente; `imagen` es
  * una foto en public/aprende/. La lámina 8 lleva las dos: la foto va dentro
@@ -195,16 +196,9 @@ export const LAMINAS = [
         tipo: 'p',
         texto: 'Cada cuenta pertenece a una de cinco familias, y cada familia vive de un lado:',
       },
-      {
-        tipo: 'lista',
-        items: [
-          'Activos — aumentan al débito',
-          'Gastos — aumentan al débito',
-          'Pasivos — aumentan al crédito',
-          'Patrimonio — aumentan al crédito',
-          'Ingresos — aumentan al crédito',
-        ],
-      },
+      // Se dibuja desde FAMILIAS, no desde una lista escrita a mano: el cuerpo
+      // y la tabla de al lado dicen la misma regla, y así no pueden discrepar.
+      { tipo: 'familias' },
       {
         tipo: 'p',
         texto:

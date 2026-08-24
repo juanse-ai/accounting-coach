@@ -300,7 +300,25 @@ function Lamina({ lamina }) {
         </h3>
         <div className="aprende__cuerpo">
           {lamina.cuerpo.map((bloque, i) =>
-            bloque.tipo === 'lista' ? (
+            bloque.tipo === 'familias' ? (
+              <ol className="aprende__familias" role="list" key={i}>
+                {FAMILIAS.map((f, j) => (
+                  <li key={f.familia}>
+                    <span className="aprende__num" aria-hidden="true">
+                      {String(j + 1).padStart(2, '0')}
+                    </span>
+                    <span className="aprende__familia">{f.familia}</span>
+                    {/* La ficha dice "↑ Débito"; sin esto el lector de pantalla
+                        oiría "Activos, Débito" y se perdería la relación. */}
+                    <span className="visualmente-oculto">aumentan al</span>
+                    <span className="aprende__ficha" data-lado={f.aumenta}>
+                      <Flecha hacia="arriba" clase="aprende__ficha-flecha" />
+                      {f.aumenta}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            ) : bloque.tipo === 'lista' ? (
               <ol className="aprende__lista" role="list" key={i}>
                 {bloque.items.map((item, j) => (
                   <li key={item}>
