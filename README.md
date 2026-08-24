@@ -40,8 +40,12 @@ src/
   logica/tablero.js           Derivaciones puras del tablero (resumen, por ejercicio…).
   componentes/                Backlog, LineaAsiento, Balanza, Retroalimentacion, CuentasT.
   componentes/LogoFailFast    Lockup de marca, recoloreado para fondo negro.
+  componentes/Aprende.jsx     La baraja de 12 láminas, en un <dialog> modal.
+  data/aprende.js             El contenido de las 12 láminas.
   estilos/fail-fast-tokens.css Tokens del design system de Fail Fast (dark only).
   estilos.css                 Estilos de la app, construidos sobre esos tokens.
+  estilos/aprende.css         Hoja de la baraja: la única con paleta propia.
+  public/aprende/             Las 7 fotos de la baraja, servidas en local.
 ```
 
 ## Design system
@@ -85,6 +89,40 @@ cambia, ese es el único archivo a resincronizar.
    contable la alineación de columnas es información, no estilo. La alternativa
    estricta sería `.ff-num` (Inter con `tabular-nums`), que alinea igual — es un
    cambio de una línea si prefieres adherencia total.
+
+**Una tercera extensión, y la única con paleta propia: la baraja "Aprende".**
+La pestaña Aprende de la cabecera abre un `<dialog>` modal con una presentación
+de 12 láminas. No es una vista más: se superpone a la que esté activa, así que
+el asiento a medio armar sigue detrás intacto. Y no sigue la paleta del sistema
+—trae la suya: fondo `#0a0a0a`, tinta `#fafafa` y un acento `#7b9cff` que pinta
+la etiqueta de sección, una palabra de cada título y los números de las listas.
+
+Eso contradice de frente dos reglas de arriba: el fondo de página es negro puro,
+y la etiqueta de sección es **siempre** neutra porque el acento nunca la toca.
+Se acepta porque la baraja es una pieza editorial cerrada con su propio brief, y
+a cambio la excepción queda encerrada: los tres valores son custom properties
+declaradas sobre `.aprende` y no sobre `:root`, así que fuera del diálogo no
+existen. La píldora "Aprende" de la cabecera se queda neutra como sus vecinas.
+Todo lo que no es paleta —espacio, radios, easing, Inter, `.cifra`, `.boton`,
+`.visualmente-oculto`— se hereda del sistema sin tocar.
+
+Seis de las doce láminas no llevan foto sino un diagrama construido en marcado y
+CSS, no como imagen: así el texto sigue siendo texto —se lee con lector de
+pantalla, se busca con Ctrl+F y escala con el zoom—. La tabla de las cinco
+familias (lámina 11) reusa las flechas direccionales del selector de lado del
+asiento: apuntan a la columna donde cae el monto en la cuenta T, que es justo
+lo que remata el cuerpo de la lámina. No tiene columna de "saldo normal": para
+las cinco familias coincide con el lado que aumenta, y verlo dos veces hacía
+dudar de si decían cosas distintas. La lámina 2 es la única que
+usa rojo y verde (`--ff-danger` / `--ff-success`), y ahí el color es el contenido
+que se enseña; aun así el signo `+` / `−` y un rótulo oculto dicen lo mismo, según
+la regla de que el color nunca va solo.
+
+El diálogo es `<dialog>` nativo abierto con `showModal()`, que regala trampa de
+foco, cierre con Escape, inertizado del fondo y capa superior. Lo único que hay
+que devolverle a React es el evento `close`. El foco vuelve al botón que abrió la
+baraja desde un efecto: el interior se desmonta al cerrar —para no descargarle
+1,5 MB de fotos a quien nunca la abre— y con él se iba el foco.
 
 Dos cosas del brief original quedaron sobrescritas por el sistema: el fondo dejó de
 ser tinta azulada y pasó a negro puro (el sistema es dark-only sobre `#000000`), y

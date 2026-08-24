@@ -1,0 +1,654 @@
+/* ==========================================================================
+   Aprende — hoja de la presentación
+
+   Vive en su propio archivo, y no como una sección más de `estilos.css`,
+   porque es la única parte de la app que NO sigue la paleta del sistema.
+
+   La presentación es una pieza editorial cerrada, con su propio brief:
+   fondo #0a0a0a, tinta #fafafa y un acento azul-violeta #7b9cff que colorea
+   la etiqueta de sección, una palabra de cada título y los números de las
+   listas. Eso contradice dos reglas de Fail Fast —el fondo de página es
+   negro puro, y la etiqueta de sección es SIEMPRE neutra porque "el acento
+   nunca la toca"—. La excepción se acepta a cambio de encerrarla: los tres
+   valores son custom properties declaradas sobre `.aprende`, no sobre
+   `:root`, así que ni un solo pixel fuera del diálogo cambia de color.
+
+   Del sistema sí se hereda todo lo que no es paleta: la escala de espacio,
+   los radios, el easing, Inter, `.cifra`, `.boton` y `.visualmente-oculto`.
+   Los diagramas toman `--ff-success` / `--ff-danger` sólo en la lámina 2,
+   donde el rojo y el verde son el contenido que se enseña, no decoración.
+   ========================================================================== */
+
+.aprende {
+  --dk-bg: #0a0a0a;
+  --dk-fg: #fafafa;
+  --dk-accent: #7b9cff;
+
+  /* Derivados de los tres de arriba, para la tipografía de apoyo y los
+     trazos de los diagramas. Nada de esto introduce un color nuevo. */
+  --dk-fg-muted: #a1a1a1;
+  --dk-fg-faint: #6b6b6b;
+  --dk-linea: #262626;
+  --dk-linea-suave: rgba(250, 250, 250, 0.09);
+
+  width: min(1220px, 94vw);
+  max-width: none;
+  height: min(780px, 92vh);
+  max-height: none;
+  padding: 0;
+  border: 1px solid var(--dk-linea);
+  border-radius: var(--ff-radius-xl);
+  background: var(--dk-bg);
+  color: var(--dk-fg);
+  overflow: hidden;
+}
+
+/* El anillo de foco global usa --ff-primary. Dentro de la baraja manda su
+   propio acento: (0,2,0) le gana al :focus-visible de la hoja de la app. */
+.aprende :focus-visible {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--dk-accent) 45%, transparent);
+}
+
+.aprende::backdrop {
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.aprende__marco {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  height: 100%;
+}
+
+/* ── Barra superior ──────────────────────────────────────── */
+
+.aprende__barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--ff-space-4) var(--ff-space-5);
+}
+
+.aprende__contador {
+  font-size: var(--ff-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--dk-fg);
+}
+
+.aprende__contador-total {
+  color: var(--dk-fg-faint);
+  font-weight: 400;
+}
+
+.aprende__cerrar {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--dk-linea);
+  border-radius: var(--ff-radius-full);
+  background: transparent;
+  color: var(--dk-fg-muted);
+  cursor: pointer;
+  transition: color var(--ff-dur) var(--ff-ease), border-color var(--ff-dur) var(--ff-ease);
+}
+
+.aprende__cerrar:hover {
+  color: var(--dk-fg);
+  border-color: var(--dk-fg-faint);
+}
+
+/* ── Lámina ──────────────────────────────────────────────── */
+
+/* Móvil primero: una sola columna, el texto antes que el dibujo. */
+.aprende__lamina {
+  display: grid;
+  grid-template-rows: auto minmax(0, auto);
+  gap: var(--ff-space-6);
+  align-content: start;
+  padding: 0 var(--ff-space-5) var(--ff-space-5);
+  overflow-y: auto;
+}
+
+.aprende__texto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ff-space-4);
+  min-width: 0;
+}
+
+.aprende__etiqueta {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  line-height: 1;
+  color: var(--dk-accent);
+}
+
+.aprende__titulo {
+  font-family: var(--ff-font-sans);
+  font-weight: 900;
+  font-size: clamp(28px, 5.2vw, 60px);
+  line-height: 1.03;
+  letter-spacing: -0.035em;
+  color: var(--dk-fg);
+  text-wrap: balance;
+}
+
+.aprende__acento {
+  color: var(--dk-accent);
+}
+
+.aprende__cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ff-space-3);
+  max-width: 52ch;
+  font-size: var(--ff-text-base);
+  line-height: 1.6;
+  color: var(--dk-fg);
+}
+
+/* Lista numerada: número en acento y negrita, texto regular, misma línea. */
+.aprende__lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ff-space-2);
+}
+
+.aprende__lista li {
+  display: flex;
+  gap: var(--ff-space-3);
+  align-items: baseline;
+}
+
+.aprende__num {
+  flex: none;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--dk-accent);
+}
+
+/* ── Visual ──────────────────────────────────────────────── */
+
+.aprende__visual {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 0;
+}
+
+.aprende__foto {
+  width: 100%;
+  max-height: 34vh;
+  border-radius: var(--ff-radius-md);
+  object-fit: cover;
+}
+
+/* Vertical o de baja resolución: se muestra entera en vez de recortarse. */
+.aprende__foto[data-encuadre='contener'] {
+  object-fit: contain;
+}
+
+/* La foto no cargó: su descripción ocupa el hueco en vez de dejarlo vacío. */
+.aprende__foto--sin-foto,
+.dg__foto--sin-foto {
+  display: grid;
+  place-content: center;
+  padding: var(--ff-space-5);
+  border: 1px dashed var(--dk-linea);
+  border-radius: var(--ff-radius-md);
+  text-align: center;
+  font-size: var(--ff-text-sm);
+  color: var(--dk-fg-muted);
+}
+
+.dg__foto--sin-foto {
+  aspect-ratio: 1;
+  font-size: var(--ff-text-xs);
+}
+
+/* ── Pie: navegación ─────────────────────────────────────── */
+
+.aprende__pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ff-space-4);
+  padding: var(--ff-space-4) var(--ff-space-5);
+  border-top: 1px solid var(--dk-linea);
+}
+
+.aprende__riel {
+  display: none;
+  gap: 6px;
+  align-items: center;
+}
+
+.aprende__punto {
+  display: block;
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: none;
+  border-radius: var(--ff-radius-full);
+  background: var(--dk-linea);
+  cursor: pointer;
+  transition: background-color var(--ff-dur) var(--ff-ease), transform var(--ff-dur) var(--ff-ease);
+}
+
+.aprende__punto:hover {
+  background: var(--dk-fg-faint);
+}
+
+.aprende__punto[aria-current='true'] {
+  background: var(--dk-accent);
+  transform: scale(1.4);
+}
+
+/* ==========================================================================
+   Diagramas
+   ========================================================================== */
+
+.dg {
+  width: 100%;
+  font-size: var(--ff-text-sm);
+}
+
+.dg__titulo,
+.dg__rotulo {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dk-fg-faint);
+}
+
+/* ── Lámina 2 · entrada simple ───────────────────────────── */
+
+.dg--simple {
+  max-width: 320px;
+  padding: var(--ff-space-4);
+  border: 1px solid var(--dk-linea);
+  border-radius: var(--ff-radius-md);
+}
+
+.dg__filas {
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--ff-space-3);
+}
+
+.dg__fila {
+  display: grid;
+  grid-template-columns: 1rem 1fr 2rem;
+  gap: var(--ff-space-2);
+  align-items: center;
+  padding: var(--ff-space-2) 0;
+  border-bottom: 1px solid var(--dk-linea-suave);
+}
+
+/* El signo va además del color: en la lámina 2 el rojo y el verde son el
+   contenido, pero no pueden ser la única señal. */
+.dg__fila[data-signo='entra'] .dg__signo,
+.dg__fila[data-signo='entra'] .dg__monto {
+  color: var(--ff-success-fg);
+}
+
+.dg__fila[data-signo='sale'] .dg__signo,
+.dg__fila[data-signo='sale'] .dg__monto {
+  color: var(--ff-danger-fg);
+}
+
+.dg__signo {
+  font-weight: 700;
+  text-align: center;
+}
+
+.dg__monto {
+  text-align: right;
+}
+
+.dg__causa {
+  font-weight: 700;
+  text-align: center;
+  color: var(--dk-accent);
+}
+
+.dg__pie {
+  display: flex;
+  justify-content: space-between;
+  padding-top: var(--ff-space-3);
+  font-weight: 600;
+  color: var(--dk-fg);
+}
+
+/* ── Lámina 8 · causa y efecto ───────────────────────────── */
+
+.dg--causa {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ff-space-3);
+}
+
+.dg__polo {
+  flex: none;
+  font-size: var(--ff-text-sm);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dk-accent);
+}
+
+.dg__flecha {
+  flex: none;
+  width: 34px;
+  color: var(--dk-fg-faint);
+}
+
+.dg__foto {
+  flex: none;
+  width: clamp(88px, 22vw, 150px);
+  aspect-ratio: 1;
+  border-radius: var(--ff-radius-md);
+  object-fit: cover;
+}
+
+/* ── Lámina 9 · verificación ─────────────────────────────── */
+
+.dg--verificacion {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  gap: 0 var(--ff-space-4);
+  max-width: 420px;
+}
+
+.dg__columna {
+  min-width: 0;
+}
+
+.dg__eje {
+  align-self: stretch;
+  background: var(--dk-linea);
+}
+
+.dg__asientos {
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--ff-space-2);
+}
+
+.dg__asientos li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--ff-space-2);
+  padding: 5px 0;
+  font-size: var(--ff-text-xs);
+}
+
+.dg__cuenta {
+  color: var(--dk-fg-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dg__valor {
+  flex: none;
+  color: var(--dk-fg);
+}
+
+.dg__total {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--ff-space-2);
+  margin-top: var(--ff-space-1);
+  padding-top: var(--ff-space-2);
+  /* Doble raya al pie: el cierre de columna de un libro contable. */
+  border-top: 3px double var(--dk-fg-faint);
+  font-size: var(--ff-text-xs);
+  font-weight: 700;
+  color: var(--dk-fg);
+}
+
+/* La línea que ata los dos totales y baja al sello. */
+.dg__lazo {
+  grid-column: 1 / -1;
+  height: var(--ff-space-4);
+  margin: 0 25%;
+  border: 1px solid var(--dk-accent);
+  border-top: none;
+  border-radius: 0 0 var(--ff-radius-sm) var(--ff-radius-sm);
+}
+
+.dg__sello {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ff-space-2);
+  margin-top: var(--ff-space-2);
+  font-size: var(--ff-text-xs);
+  color: var(--dk-fg-muted);
+}
+
+.dg__igual {
+  font-size: var(--ff-text-lg);
+  font-weight: 700;
+  color: var(--dk-accent);
+}
+
+/* ── Lámina 10 · el mayor partido ────────────────────────── */
+
+.dg--mayor {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  max-width: 400px;
+  min-height: 220px;
+  padding: var(--ff-space-4) 0;
+  border: 1px solid var(--dk-linea);
+  border-radius: var(--ff-radius-sm);
+}
+
+.dg--mayor .dg__mitad {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ff-space-3);
+  padding: 0 var(--ff-space-4);
+}
+
+.dg__pliegue {
+  align-self: stretch;
+  background: var(--dk-fg-faint);
+}
+
+/* Renglones del mayor: rayas equiespaciadas, trazo fino, sin cifras. */
+.dg__reglas {
+  flex: 1;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0 21px,
+    var(--dk-linea-suave) 21px 22px
+  );
+}
+
+/* ── Lámina 11 · las cinco familias ──────────────────────── */
+
+.dg--tabla {
+  max-width: 460px;
+}
+
+/* Con tres columnas en vez de cuatro la tabla puede crecer: a 12px se leía
+   como una nota al pie al lado de un título de 60. */
+.dg__tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--ff-text-sm);
+}
+
+.dg__tabla th,
+.dg__tabla td {
+  padding: var(--ff-space-3) var(--ff-space-2);
+  text-align: left;
+  border-bottom: 1px solid var(--dk-linea-suave);
+}
+
+.dg__tabla thead th {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dk-fg-faint);
+  border-bottom-color: var(--dk-linea);
+}
+
+.dg__tabla tbody th {
+  font-weight: 700;
+  color: var(--dk-fg);
+  white-space: nowrap;
+}
+
+.dg__tabla tbody tr:last-child th,
+.dg__tabla tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Encabezado con el sentido del movimiento: sube o baja. */
+.dg__encabezado {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.dg__flecha-sentido {
+  width: 12px;
+  height: 12px;
+  flex: none;
+}
+
+/* La celda de lado: flecha + palabra. El color usa sólo los dos tonos de la
+   baraja; quien no distinga el azul lee la palabra y ve hacia dónde apunta. */
+.dg__lado-celda {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.dg__lado-celda[data-lado='Débito'] {
+  color: var(--dk-accent);
+}
+
+.dg__lado-celda[data-lado='Crédito'] {
+  color: var(--dk-fg-muted);
+}
+
+.dg__flecha-lado {
+  width: 15px;
+  height: 15px;
+  flex: none;
+}
+
+/* ── Lámina 12 · la cuenta T ─────────────────────────────── */
+
+.dg--t {
+  max-width: 340px;
+  font-family: var(--ff-font-mono);
+}
+
+.dg__nombre {
+  padding-bottom: var(--ff-space-3);
+  text-align: center;
+  font-size: var(--ff-text-sm);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--dk-fg);
+  /* El travesaño de la T. */
+  border-bottom: 3px solid var(--dk-fg);
+}
+
+.dg__t {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 170px;
+}
+
+.dg--t .dg__lado {
+  padding: var(--ff-space-3);
+}
+
+/* El asta de la T: sólo la mitad izquierda la dibuja. */
+.dg--t .dg__lado:first-child {
+  border-right: 3px solid var(--dk-fg);
+}
+
+/* Los dos rótulos en bloque: uno inline y otro en bloque no comparten línea
+   base y quedaban a alturas distintas. */
+.dg--t .dg__rotulo {
+  display: block;
+  color: var(--dk-accent);
+}
+
+.dg--t .dg__lado:last-child .dg__rotulo {
+  text-align: right;
+  color: var(--dk-fg-muted);
+}
+
+.dg__saldo {
+  display: flex;
+  justify-content: space-between;
+  padding-top: var(--ff-space-2);
+  border-top: 1px solid var(--dk-linea);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dk-fg-faint);
+}
+
+/* ==========================================================================
+   Escritorio — el texto a la izquierda, el dibujo a la derecha
+   ========================================================================== */
+
+@media (min-width: 900px) {
+  .aprende__lamina {
+    grid-template-rows: none;
+    grid-template-columns: 55fr 45fr;
+    gap: var(--ff-space-10);
+    align-content: center;
+    align-items: center;
+    padding: 0 var(--ff-space-10) var(--ff-space-6);
+    overflow-y: auto;
+  }
+
+  .aprende__barra,
+  .aprende__pie {
+    padding-inline: var(--ff-space-10);
+  }
+
+  .aprende__foto {
+    max-height: 56vh;
+  }
+
+  .aprende__riel {
+    display: flex;
+  }
+
+  .dg--simple,
+  .dg--verificacion,
+  .dg--mayor,
+  .dg--tabla,
+  .dg--t {
+    margin-inline: auto;
+  }
+}
+
+/* En pantallas bajas el título se come la lámina: se le pone techo. */
+@media (min-width: 900px) and (max-height: 720px) {
+  .aprende__titulo {
+    font-size: clamp(28px, 3.4vw, 42px);
+  }
+}

@@ -775,7 +775,8 @@ select {
   color: var(--ff-fg-strong);
 }
 
-.cabecera__vista[aria-pressed='true'] {
+.cabecera__vista[aria-pressed='true'],
+.cabecera__vista[aria-expanded='true'] {
   background: var(--ff-bg-muted);
   color: var(--ff-fg-strong);
 }

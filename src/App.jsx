@@ -6,6 +6,7 @@ import Retroalimentacion from './componentes/Retroalimentacion.jsx'
 import CuentasT from './componentes/CuentasT.jsx'
 import LogoFailFast from './componentes/LogoFailFast.jsx'
 import Landing from './componentes/Landing.jsx'
+import Aprende from './componentes/Aprende.jsx'
 import { EJERCICIOS } from './data/ejercicios.js'
 import { lineaVacia, totales, verificarAsiento } from './logica/verificar.js'
 import { useProgreso } from './hooks/useProgreso.js'
@@ -46,7 +47,9 @@ export default function App() {
   const [confirmandoReinicio, setConfirmandoReinicio] = useState(false)
   const [envios, setEnvios] = useState({})
   const [vista, setVista] = useState('ejercicios')
+  const [aprendiendo, setAprendiendo] = useState(false)
   const panelRef = useRef(null)
+  const botonAprendeRef = useRef(null)
 
   // Al abrir la app se reintenta lo que quedó sin enviar en una visita
   // anterior, antes de que la persona genere respuestas nuevas.
@@ -68,6 +71,22 @@ export default function App() {
   const actualizarLineas = useCallback((id, transformar) => {
     setBorradores((prev) => ({ ...prev, [id]: transformar(prev[id] ?? borradorInicial()) }))
   }, [])
+
+  const cerrarAprende = useCallback(() => setAprendiendo(false), [])
+
+  // El <dialog> nativo devuelve el foco al elemento que lo abrió, pero sólo si
+  // lo que lo tenía sigue montado al cerrarse. Aquí el interior de la baraja
+  // se desmonta —para no descargarle 1,5 MB de fotos a quien nunca la abre— y
+  // el foco terminaba en el <body>: quien navega con teclado perdía el sitio.
+  //
+  // Se devuelve a mano, y desde un efecto y no desde el manejador de `close`:
+  // el efecto corre después de que React confirma el desmontaje, que es lo
+  // único que garantiza que nadie pise el focus() a continuación.
+  const estabaAprendiendo = useRef(false)
+  useEffect(() => {
+    if (estabaAprendiendo.current && !aprendiendo) botonAprendeRef.current?.focus()
+    estabaAprendiendo.current = aprendiendo
+  }, [aprendiendo])
 
   const olvidarResultado = useCallback((id) => {
     // La retroalimentación anterior deja de valer en cuanto se edita el asiento,
@@ -189,7 +208,7 @@ export default function App() {
 
         {/* Dos vistas, no dos páginas: la app no tiene router y el estado del
             asiento a medio armar tiene que sobrevivir a ir y volver. */}
-        <nav className="cabecera__vistas" aria-label="Vistas">
+        <nav className="cabecera__vistas" aria-label="Secciones">
           <button
             type="button"
             className="cabecera__vista"
@@ -205,6 +224,18 @@ export default function App() {
             onClick={() => setVista('resultados')}
           >
             Resultados
+          </button>
+          {/* No es una tercera vista sino una puerta: abre la presentación
+              encima de lo que haya, por eso lleva haspopup y no aria-pressed. */}
+          <button
+            type="button"
+            className="cabecera__vista"
+            ref={botonAprendeRef}
+            aria-haspopup="dialog"
+            aria-expanded={aprendiendo}
+            onClick={() => setAprendiendo(true)}
+          >
+            Aprende
           </button>
         </nav>
 
@@ -387,6 +418,8 @@ export default function App() {
         </>
         )}
       </div>
+
+      <Aprende abierto={aprendiendo} onCerrar={cerrarAprende} />
     </div>
   )
 }
