@@ -1,0 +1,237 @@
+/* ==========================================================================
+   Fail Fast — tokens (dark only)
+
+   Subconjunto de `colors_and_type.css` del design system, recortado a lo que
+   esta app usa. Los valores no se alteran: el sistema es dark-only y el
+   negro puro, los hairlines y la escala semántica vienen tal cual de allí.
+   Inter se carga empaquetada (@fontsource) y no por CDN, como pide el sistema.
+   ========================================================================== */
+
+:root {
+  /* ---------- MARCA ---------- */
+  --ff-primary: #5c78ff;
+  --ff-primary-hover: #7b91ff;
+  --ff-primary-active: #8fa3ff;
+  --ff-primary-soft: #8fa9ff;
+  --ff-primary-contrast: #ffffff;
+
+  /* Tinte del botón "Agenda una demo": la acción secundaria del sistema,
+     deliberadamente más callada que el primario. Radio 6px, sin borde. */
+  --ff-demo-bg: #0f2540;
+  --ff-demo-bg-hover: #163559;
+  --ff-demo-fg: #7cc1ff;
+
+  /* ---------- SUPERFICIES ---------- */
+  --ff-bg-page: #000000;
+  --ff-bg: #161618;
+  --ff-bg-muted: #1c1c1f;
+  --ff-bg-subtle: #141416;
+
+  /* ---------- TINTA ---------- */
+  --ff-fg: #f5f5f5;
+  --ff-fg-strong: #ffffff;
+  --ff-fg-muted: #c4c4c4;
+  --ff-fg-subtle: #8a8a8a;
+  --ff-fg-faint: #525252;
+
+  --ff-border: #2a2a2e;
+  --ff-border-soft: rgba(255, 255, 255, 0.08);
+
+  /* ---------- SEMÁNTICA ---------- */
+  --ff-success: #4db08a;
+  --ff-success-fg: #8fd7b5;
+  --ff-success-bg: #15261f;
+  --ff-success-border: #22453a;
+
+  --ff-warn: #e8954d;
+  --ff-warn-fg: #f2b784;
+  --ff-warn-bg: #2a1c10;
+  --ff-warn-border: #4a3320;
+
+  --ff-danger: #e76161;
+  --ff-danger-fg: #ee9090;
+  --ff-danger-bg: #2a1616;
+  --ff-danger-border: #4a2828;
+
+  --ff-info: #7b8fd9;
+  --ff-info-fg: #a5b3e8;
+  --ff-info-bg: #1a1f36;
+  --ff-info-border: #2f3860;
+
+  --ff-accent-plum: #a070b0;
+  --ff-accent-plum-bg: #261a2a;
+  --ff-accent-plum-border: #432f4a;
+  /* El sistema no define hermano claro para el ciruela. Se deriva aquí con el
+     mismo salto de luminosidad que usan las otras familias (warn #e8954d →
+     #f2b784, info #7b8fd9 → #a5b3e8) para que el texto sobre el tinte lea
+     igual de bien. Si el sistema publica un --ff-accent-plum-fg, este se borra. */
+  --ff-accent-plum-fg: #c49ad2;
+
+  /* ---------- RADIOS ---------- */
+  --ff-radius-xs: 4px;
+  --ff-radius-sm: 6px;
+  --ff-radius-md: 10px;
+  --ff-radius-lg: 12px;
+  --ff-radius-xl: 16px;
+  --ff-radius-2xl: 24px;
+  --ff-radius-full: 9999px;
+
+  /* ---------- SOMBRAS ---------- */
+  --ff-shadow-sm: 0 0 0 1px rgba(255, 255, 255, 0.04), 0 3px 6px rgba(0, 0, 0, 0.4);
+  --ff-shadow-md: 0 0 0 1px rgba(255, 255, 255, 0.04), 0 3px 6px rgba(0, 0, 0, 0.4),
+    0 9px 24px rgba(0, 0, 0, 0.6);
+  --ff-shadow-glow: 0 10px 30px -10px rgba(67, 97, 255, 0.55);
+
+  /* ---------- ESPACIO (base 4px) ---------- */
+  --ff-space-1: 4px;
+  --ff-space-2: 8px;
+  --ff-space-3: 12px;
+  --ff-space-4: 16px;
+  --ff-space-5: 20px;
+  --ff-space-6: 24px;
+  --ff-space-8: 32px;
+  --ff-space-10: 40px;
+  --ff-space-12: 48px;
+
+  /* ---------- TIPOGRAFÍA ---------- */
+  --ff-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+  --ff-font-serif: ui-serif, Georgia, 'Times New Roman', serif;
+  --ff-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --ff-text-xs: 12px;
+  --ff-text-sm: 14px;
+  --ff-text-base: 16px;
+  --ff-text-lg: 18px;
+  --ff-text-xl: 20px;
+
+  --ff-tracking-tight: -0.02em;
+  --ff-tracking-wide: 0.02em;
+
+  /* ---------- MOTION ---------- */
+  --ff-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ff-dur: 220ms;
+}
+
+html,
+body {
+  font-family: var(--ff-font-sans);
+  color: var(--ff-fg);
+  background: var(--ff-bg-page);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Etiqueta de sección: 12/600, 0.18em, mayúsculas y SIEMPRE neutra.
+   El acento nunca la toca — esa es la regla del sistema. */
+.ff-section-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  line-height: 1;
+  color: var(--ff-fg-subtle);
+}
+
+/* Serif del sistema para display editorial y todo h2 de sección. */
+.ff-editorial-h2 {
+  font-family: var(--ff-font-serif);
+  font-weight: 600;
+  font-size: clamp(30px, 3.4vw, 46px);
+  line-height: 1.12;
+  letter-spacing: var(--ff-tracking-tight);
+  color: var(--ff-fg-strong);
+  text-wrap: balance;
+}
+
+.ff-editorial-h3 {
+  font-family: var(--ff-font-serif);
+  font-weight: 600;
+  font-size: 19px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--ff-fg-strong);
+}
+
+.ff-editorial-body {
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--ff-fg-muted);
+  max-width: 62ch;
+}
+
+/* CTA primaria: el único trabajo del acento en toda la página. */
+.ff-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: var(--ff-radius-md);
+  padding: 13px 22px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+  background: var(--ff-primary);
+  color: var(--ff-primary-contrast);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color var(--ff-dur) var(--ff-ease),
+    transform var(--ff-dur) var(--ff-ease), box-shadow var(--ff-dur) var(--ff-ease);
+}
+
+.ff-cta:hover:not(:disabled) {
+  background: var(--ff-primary-hover);
+  box-shadow: var(--ff-shadow-glow);
+}
+
+.ff-cta:hover:not(:disabled) .ff-cta-arrow {
+  transform: translateX(3px);
+}
+
+.ff-cta:active:not(:disabled) {
+  background: var(--ff-primary-active);
+  transform: translateY(1px);
+}
+
+.ff-cta:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ff-cta-arrow {
+  transition: transform var(--ff-dur) var(--ff-ease);
+}
+
+/* Campo neutro, pareja de .ff-cta. Radio 6px: el sistema reserva ese valor
+   para inputs y chips pequeños. */
+.ff-field {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: var(--ff-radius-sm);
+  border: 1px solid var(--ff-border);
+  background: var(--ff-bg-subtle);
+  color: var(--ff-fg-strong);
+  font-size: 15px;
+  line-height: 1;
+  transition: background-color var(--ff-dur) var(--ff-ease), border-color var(--ff-dur) var(--ff-ease),
+    box-shadow var(--ff-dur) var(--ff-ease);
+}
+
+.ff-field::placeholder {
+  color: var(--ff-fg-subtle);
+}
+
+.ff-field:hover:not(:focus):not(:disabled) {
+  border-color: var(--ff-fg-subtle);
+}
+
+.ff-field:focus {
+  outline: none;
+  background: var(--ff-bg);
+  border-color: var(--ff-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ff-primary) 22%, transparent);
+}
+
+.ff-field:disabled {
+  opacity: 0.6;
+}
