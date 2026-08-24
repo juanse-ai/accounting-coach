@@ -18,6 +18,13 @@ import { registrarRespuesta, vaciarPendientes } from './lib/respuestas.js'
 // alguien abre el tablero.
 const Resultados = lazy(() => import('./componentes/Resultados.jsx'))
 
+// El tablero no es una vista más del menú: vive detrás de una ruta que no se
+// enlaza desde ninguna parte. Sin router, la ruta se lee una sola vez al cargar
+// el módulo — la app nunca cambia de URL, así que no hay nada que re-evaluar.
+const RUTA_TABLERO = '/manchester-united'
+const tableroHabilitado =
+  window.location.pathname.replace(/\/+$/, '').toLowerCase() === RUTA_TABLERO
+
 let contador = 0
 const nuevaLinea = () => ({
   id: `l${++contador}`,
@@ -40,13 +47,12 @@ const AVISO_ENVIO = {
 
 export default function App() {
   const { participante, registrar, salir, enviando, errorServidor } = useParticipante()
-  const { progreso, marcar, reiniciar } = useProgreso()
+  const { progreso, marcar } = useProgreso()
   const [activo, setActivo] = useState(EJERCICIOS[0].id)
   const [borradores, setBorradores] = useState(() => ({ [EJERCICIOS[0].id]: borradorInicial() }))
   const [resultados, setResultados] = useState({})
-  const [confirmandoReinicio, setConfirmandoReinicio] = useState(false)
   const [envios, setEnvios] = useState({})
-  const [vista, setVista] = useState('ejercicios')
+  const [vista, setVista] = useState(tableroHabilitado ? 'resultados' : 'ejercicios')
   const [aprendiendo, setAprendiendo] = useState(false)
   const panelRef = useRef(null)
   const botonAprendeRef = useRef(null)
@@ -100,7 +106,6 @@ export default function App() {
     (id) => {
       setActivo(id)
       setBorradores((prev) => (prev[id] ? prev : { ...prev, [id]: borradorInicial() }))
-      setConfirmandoReinicio(false)
       panelRef.current?.focus({ preventScroll: true })
       panelRef.current?.scrollIntoView({ block: 'start', behavior: 'auto' })
     },
@@ -164,14 +169,14 @@ export default function App() {
   // La puerta sigue siendo puerta para practicar, pero no para mirar: el
   // tablero es público, así que un visitante sin registrar llega a él sin
   // dejar nada. Volver a "Ejercicios" lo devuelve al formulario de entrada.
-  const enTablero = vista === 'resultados'
+  const enTablero = tableroHabilitado && vista === 'resultados'
   if (!participante && !enTablero) {
     return (
       <Landing
         onRegistrar={registrar}
         enviando={enviando}
         errorServidor={errorServidor}
-        onVerResultados={() => setVista('resultados')}
+        onVerResultados={tableroHabilitado ? () => setVista('resultados') : undefined}
       />
     )
   }
@@ -207,7 +212,8 @@ export default function App() {
         </div>
 
         {/* Dos vistas, no dos páginas: la app no tiene router y el estado del
-            asiento a medio armar tiene que sobrevivir a ir y volver. */}
+            asiento a medio armar tiene que sobrevivir a ir y volver. La segunda
+            sólo aparece para quien llegó por RUTA_TABLERO. */}
         <nav className="cabecera__vistas" aria-label="Secciones">
           <button
             type="button"
@@ -217,14 +223,16 @@ export default function App() {
           >
             Ejercicios
           </button>
-          <button
-            type="button"
-            className="cabecera__vista"
-            aria-pressed={enTablero}
-            onClick={() => setVista('resultados')}
-          >
-            Resultados
-          </button>
+          {tableroHabilitado && (
+            <button
+              type="button"
+              className="cabecera__vista"
+              aria-pressed={enTablero}
+              onClick={() => setVista('resultados')}
+            >
+              Resultados
+            </button>
+          )}
           {/* No es una tercera vista sino una puerta: abre la presentación
               encima de lo que haya, por eso lleva haspopup y no aria-pressed. */}
           <button
@@ -258,24 +266,6 @@ export default function App() {
                 <span style={{ width: `${(totalResueltos / EJERCICIOS.length) * 100}%` }} />
               </div>
               <div className="cabecera__acciones">
-                <button
-                  type="button"
-                  className="boton boton--mini"
-                  onClick={() => {
-                    if (confirmandoReinicio) {
-                      reiniciar()
-                      setResultados({})
-                      setEnvios({})
-                      setBorradores({ [activo]: borradorInicial() })
-                      setConfirmandoReinicio(false)
-                    } else {
-                      setConfirmandoReinicio(true)
-                    }
-                  }}
-                  onBlur={() => setConfirmandoReinicio(false)}
-                >
-                  {confirmandoReinicio ? '¿Seguro? Borra todo' : 'Reiniciar progreso'}
-                </button>
                 {/* Salir solo cierra la sesión local: las respuestas ya enviadas
                     siguen guardadas y vuelven a asociarse con el mismo correo. */}
                 <button type="button" className="boton boton--mini" onClick={salir}>

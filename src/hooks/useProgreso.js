@@ -44,7 +44,5 @@ export function useProgreso() {
     })
   }, [])
 
-  const reiniciar = useCallback(() => setProgreso({}), [])
-
-  return { progreso, marcar, reiniciar }
+  return { progreso, marcar }
 }

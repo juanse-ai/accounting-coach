@@ -130,13 +130,16 @@ export default function Landing({ onRegistrar, enviando, errorServidor, onVerRes
           </p>
         </form>
 
-        {/* El tablero es público: mirarlo no exige dejar datos. */}
-        <div className="landing__salida">
-          <button type="button" className="landing__enlace" onClick={onVerResultados}>
-            Ver resultados públicos
-            <span aria-hidden="true"> →</span>
-          </button>
-        </div>
+        {/* El tablero no se enlaza desde aquí salvo que se haya llegado por su
+            ruta: sin onVerResultados no hay a dónde ir, y el enlace sobra. */}
+        {onVerResultados && (
+          <div className="landing__salida">
+            <button type="button" className="landing__enlace" onClick={onVerResultados}>
+              Ver resultados públicos
+              <span aria-hidden="true"> →</span>
+            </button>
+          </div>
+        )}
       </main>
     </div>
   )
