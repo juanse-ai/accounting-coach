@@ -1,5 +1,4 @@
-import { CUENTAS_ORDENADAS, CUENTAS_PADRE } from '../data/planCuentas.js'
-import { DEBITO, CREDITO } from '../logica/verificar.js'
+import { CUENTAS_PADRE, DEBITO, CREDITO } from '../logica/verificar.js'
 import { formatearEntrada, montoDesdeEntrada } from '../utils/formato.js'
 
 // Trazo Lucide: 2px, extremos y uniones redondeados, como pide el sistema.
@@ -26,6 +25,7 @@ function Flecha({ hacia }) {
 
 export default function LineaAsiento({
   linea,
+  cuentas,
   indice,
   puedeQuitar,
   onCambiar,
@@ -75,7 +75,7 @@ export default function LineaAsiento({
           onChange={(e) => cambiar('cuenta', e.target.value)}
         >
           <option value="">Elige una cuenta…</option>
-          {CUENTAS_ORDENADAS.map((c) => (
+          {cuentas.map((c) => (
             <option key={c.nombre} value={c.nombre}>
               {c.nombre}
               {c.contraria ? ' (contraria)' : ''}

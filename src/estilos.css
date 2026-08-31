@@ -1003,9 +1003,152 @@ select {
   color: var(--ff-fg-subtle);
 }
 
+
+/* ── Selector de clase ───────────────────────────────────── */
+
+/* Con una sola clase publicada el componente no se dibuja: un control con una
+   sola opción es ruido. */
+.selector-clase {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ff-space-2);
+}
+
+/* Dentro de la píldora de la cabecera se comporta como una pestaña más: baja
+   de altura y pierde el fondo de campo, que ahí competía con el grupo. */
+.selector-clase[data-compacto='true'] {
+  gap: 0;
+}
+
+.selector-clase[data-compacto='true'] .entrada {
+  height: 28px;
+  max-width: 15rem;
+  padding: 0 26px 0 12px;
+  border-color: transparent;
+  background-color: transparent;
+  font-size: var(--ff-text-xs);
+  font-weight: 600;
+  color: var(--ff-fg);
+}
+
+.selector-clase[data-compacto='true'] .entrada:hover {
+  background-color: var(--ff-bg-muted);
+}
+
+/* ── Opciones ────────────────────────────────────────────── */
+
+/* Radios de verdad, con la etiqueta entera como área de clic. El estado
+   elegido nunca se comunica solo con color: la marca del radio sigue ahí y el
+   borde cambia de grosor aparente al pasar a --ff-primary. */
+.opciones {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ff-space-3);
+}
+
+.opcion {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--ff-space-3);
+  padding: var(--ff-space-4);
+  background: var(--ff-bg-subtle);
+  border: 1px solid var(--ff-border);
+  border-radius: var(--ff-radius-lg);
+  cursor: pointer;
+  transition: background-color var(--ff-dur) var(--ff-ease),
+    border-color var(--ff-dur) var(--ff-ease);
+}
+
+.opcion:hover {
+  background: var(--ff-bg-muted);
+  border-color: var(--ff-border-soft);
+}
+
+.opcion[data-elegida='true'] {
+  background: var(--ff-primary-soft);
+  border-color: var(--ff-primary);
+}
+
+/* El anillo de foco lo pinta la etiqueta, no el radio: el radio es de 16px y
+   el área que la persona ve es la tarjeta entera. */
+.opcion:has(.opcion__radio:focus-visible) {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ff-primary) 40%, transparent);
+}
+
+.opcion:has(.opcion__radio:disabled) {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.opcion__radio {
+  width: 16px;
+  height: 16px;
+  margin: 3px 0 0;
+  flex: none;
+  accent-color: var(--ff-primary);
+}
+
+.opcion__radio:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.opcion__letra {
+  font-family: var(--ff-font-mono);
+  font-size: var(--ff-text-sm);
+  font-weight: 700;
+  line-height: 1.55;
+  color: var(--ff-fg-subtle);
+}
+
+.opcion[data-elegida='true'] .opcion__letra {
+  color: var(--ff-primary);
+}
+
+.opcion__texto {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ff-fg);
+}
+
+/* ── Solución ────────────────────────────────────────────── */
+
+/* El equivalente de las cuentas T para una pregunta de opción: la respuesta y
+   el porqué, sólo después de acertar. */
+.solucion {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ff-space-4);
+}
+
+.solucion__texto {
+  padding: var(--ff-space-4) var(--ff-space-5);
+  background: var(--ff-success-bg);
+  border: 1px solid var(--ff-success-border);
+  border-radius: var(--ff-radius-lg);
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--ff-success-fg);
+}
+
+/* La opción elegida, en el tablero. */
+.envio__eleccion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--ff-space-3);
+  margin-top: var(--ff-space-3);
+  font-size: var(--ff-text-sm);
+  line-height: 1.5;
+  color: var(--ff-fg-muted);
+}
+
 /* ── Asiento ─────────────────────────────────────────────── */
 
-.asiento {
+/* La tarjeta donde se responde, sea cual sea el tipo de pregunta. `.asiento`
+   la lleva además porque el resto de sus reglas dibujan el libro diario. */
+.respuesta {
   background: var(--ff-bg);
   border: 1px solid var(--ff-border);
   border-radius: var(--ff-radius-xl);

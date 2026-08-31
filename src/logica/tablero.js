@@ -1,7 +1,9 @@
-import { EJERCICIOS } from '../data/ejercicios.js'
-
 // Derivaciones puras del tablero. Viven aparte del componente para poder
 // razonarlas —y probarlas— sin montar React ni tocar la red.
+//
+// Todo sale de lo que devolvió el servidor: las preguntas vienen en la misma
+// carga que las respuestas, así que el tablero no puede desincronizarse del
+// catálogo como pasaba cuando la lista vivía en el bundle.
 
 /**
  * Nombre para mostrar, único. La gente se registra con el nombre que quiere y
@@ -31,10 +33,10 @@ export function resumen(datos, participanteId = null) {
   const envios = deParticipante(datos.respuestas, participanteId)
   const aciertos = envios.filter((r) => r.estado === 'correcto').length
 
-  // "Resueltos" cuenta ejercicios distintos, no envíos: acertar el 03 en el
-  // tercer intento resuelve un ejercicio, no tres.
+  // "Resueltas" cuenta preguntas distintas, no envíos: acertar la 03 en el
+  // tercer intento resuelve una pregunta, no tres.
   const resueltos = new Set(
-    envios.filter((r) => r.estado === 'correcto').map((r) => r.ejercicio)
+    envios.filter((r) => r.estado === 'correcto').map((r) => r.pregunta)
   ).size
 
   return {
@@ -43,22 +45,23 @@ export function resumen(datos, participanteId = null) {
     aciertos,
     errores: envios.length - aciertos,
     resueltos,
-    // Porcentaje de envíos acertados, no de ejercicios: mide la puntería.
+    // Porcentaje de envíos acertados, no de preguntas: mide la puntería.
     precision: envios.length ? Math.round((aciertos / envios.length) * 100) : 0,
   }
 }
 
-/** Una fila por ejercicio, siempre los 18 — un ejercicio que nadie intentó
- *  también es información, así que se dibuja en cero y no se omite. */
-export function porEjercicio(datos, participanteId = null) {
+/** Una fila por pregunta de la clase — una que nadie intentó también es
+ *  información, así que se dibuja en cero y no se omite. */
+export function porPregunta(datos, participanteId = null) {
   const envios = deParticipante(datos.respuestas, participanteId)
-  return EJERCICIOS.map((e) => {
-    const suyos = envios.filter((r) => r.ejercicio === e.id)
+  return datos.preguntas.map((p) => {
+    const suyos = envios.filter((r) => r.pregunta === p.id)
     const aciertos = suyos.filter((r) => r.estado === 'correcto').length
     return {
-      id: e.id,
-      nivel: e.nivel,
-      hecho: e.hecho,
+      id: p.id,
+      codigo: p.codigo,
+      nivel: p.nivel,
+      enunciado: p.enunciado,
       aciertos,
       errores: suyos.length - aciertos,
       envios: suyos.length,
@@ -78,7 +81,7 @@ export function porParticipante(datos) {
         id: p.id,
         nombre: nombres.get(p.id) ?? p.nombre,
         resueltos: new Set(
-          suyos.filter((r) => r.estado === 'correcto').map((r) => r.ejercicio)
+          suyos.filter((r) => r.estado === 'correcto').map((r) => r.pregunta)
         ).size,
         envios: suyos.length,
         precision: suyos.length ? Math.round((aciertos / suyos.length) * 100) : 0,
@@ -87,10 +90,17 @@ export function porParticipante(datos) {
     .sort((a, b) => b.resueltos - a.resueltos || b.precision - a.precision)
 }
 
-/** Los envíos, del más reciente al más viejo, con el nombre ya resuelto. */
+/** Los envíos, del más reciente al más viejo, con el nombre y el tipo de
+ *  pregunta ya resueltos: el tablero necesita el tipo para saber qué motor
+ *  dibuja cada respuesta. */
 export function envios(datos, participanteId = null) {
   const nombres = nombresParaMostrar(datos.participantes)
+  const tipos = new Map(datos.preguntas.map((p) => [p.id, p.tipo]))
   return deParticipante(datos.respuestas, participanteId)
-    .map((r) => ({ ...r, nombre: nombres.get(r.participante) ?? '—' }))
+    .map((r) => ({
+      ...r,
+      nombre: nombres.get(r.participante) ?? '—',
+      tipo: tipos.get(r.pregunta) ?? null,
+    }))
     .sort((a, b) => String(b.creado_en).localeCompare(String(a.creado_en)))
 }

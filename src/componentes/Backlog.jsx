@@ -1,6 +1,6 @@
 const ETIQUETA_ESTADO = {
-  resuelto: 'Resuelto',
-  errado: 'Intentado con errores',
+  resuelto: 'Resuelta',
+  errado: 'Intentada con errores',
   pendiente: 'Sin intentar',
 }
 
@@ -22,26 +22,25 @@ function Marca({ estado }) {
   return <span className="marca marca--vacia" aria-hidden="true" />
 }
 
-export default function Backlog({ ejercicios, progreso, activo, onSeleccionar }) {
+export default function Backlog({ preguntas, progreso, activo, onSeleccionar }) {
   return (
-    <nav className="backlog" aria-label="Ejercicios">
-      <p className="backlog__titulo">Ejercicios</p>
+    <nav className="backlog" aria-label="Preguntas">
+      <p className="backlog__titulo">Preguntas</p>
       <ol className="backlog__lista">
-        {ejercicios.map((ej) => {
-          const estado = progreso[ej.id] ?? 'pendiente'
-          const esActivo = ej.id === activo
+        {preguntas.map((p) => {
+          const estado = progreso[p.codigo] ?? 'pendiente'
           return (
-            <li key={ej.id}>
+            <li key={p.id}>
               <button
                 type="button"
                 className="backlog__item"
                 data-estado={estado}
-                aria-current={esActivo ? 'true' : undefined}
-                onClick={() => onSeleccionar(ej.id)}
+                aria-current={p.id === activo ? 'true' : undefined}
+                onClick={() => onSeleccionar(p.id)}
               >
-                <span className="backlog__num">{ej.id}</span>
+                <span className="backlog__num">{p.codigo}</span>
                 <span className="backlog__meta">
-                  <span className="backlog__nivel">{ej.nivel}</span>
+                  <span className="backlog__nivel">{p.nivel}</span>
                   <span className="visualmente-oculto">
                     {`. ${ETIQUETA_ESTADO[estado]}.`}
                   </span>

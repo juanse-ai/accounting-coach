@@ -4,7 +4,7 @@ import {
   Legend, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts'
 import { useResultados } from '../hooks/useResultados.js'
-import { envios as listarEnvios, nombresParaMostrar, porEjercicio, porParticipante, resumen } from '../logica/tablero.js'
+import { envios as listarEnvios, nombresParaMostrar, porParticipante, porPregunta, resumen } from '../logica/tablero.js'
 import DetalleEnvios from './DetalleEnvios.jsx'
 import { supabase, hayBackend } from '../lib/supabase.js'
 
@@ -54,13 +54,13 @@ function Tarjeta({ etiqueta, valor, sufijo }) {
   )
 }
 
-function Globo({ active, payload, label, ejercicios }) {
+function Globo({ active, payload, label, preguntas }) {
   if (!active || !payload?.length) return null
-  const hecho = ejercicios?.find((e) => e.id === label)?.hecho
+  const enunciado = preguntas?.find((p) => p.codigo === label)?.enunciado
   return (
     <div className="globo">
-      <p className="globo__titulo">Ejercicio {label}</p>
-      {hecho && <p className="globo__hecho">{hecho}</p>}
+      <p className="globo__titulo">Pregunta {label}</p>
+      {enunciado && <p className="globo__hecho">{enunciado}</p>}
       {payload.map((p) => (
         <p key={p.dataKey} className="globo__fila">
           <span className="globo__punto" data-serie={p.dataKey} aria-hidden="true" />
@@ -71,8 +71,8 @@ function Globo({ active, payload, label, ejercicios }) {
   )
 }
 
-export default function Resultados({ participante }) {
-  const { datos, cargando, error, envivo } = useResultados()
+export default function Resultados({ clase, participante }) {
+  const { datos, cargando, error, envivo } = useResultados(clase)
   const [filtro, setFiltro] = useState('')
   const [verTabla, setVerTabla] = useState(false)
   const [yo, setYo] = useState('')
@@ -100,7 +100,7 @@ export default function Resultados({ participante }) {
   const nombres = useMemo(() => nombresParaMostrar(datos.participantes), [datos.participantes])
   const activo = filtro || null
   const cifras = useMemo(() => resumen(datos, activo), [datos, activo])
-  const ejercicios = useMemo(() => porEjercicio(datos, activo), [datos, activo])
+  const preguntas = useMemo(() => porPregunta(datos, activo), [datos, activo])
   const gente = useMemo(
     () => porParticipante(datos).map((p) => (p.id === yo ? { ...p, nombre: `${p.nombre} (tú)` } : p)),
     [datos, yo]
@@ -115,7 +115,7 @@ export default function Resultados({ participante }) {
         <div>
           <span className="etiqueta-dato">Resultados públicos</span>
           <h2 className="titulo-seccion" id="tablero-titulo">
-            Cómo va la práctica
+            Cómo va {clase?.nombre ?? 'la práctica'}
           </h2>
         </div>
         <p className="tablero__vivo" data-vivo={envivo} role="status">
@@ -162,7 +162,7 @@ export default function Resultados({ participante }) {
           <div className="tablero__fichas">
             {activo ? (
               <>
-                <Tarjeta etiqueta="Resueltos" valor={cifras.resueltos} sufijo={` / ${ejercicios.length}`} />
+                <Tarjeta etiqueta="Resueltas" valor={cifras.resueltos} sufijo={` / ${preguntas.length}`} />
                 <Tarjeta etiqueta="Envíos" valor={cifras.envios} />
                 <Tarjeta etiqueta="Acertados" valor={cifras.aciertos} />
                 <Tarjeta etiqueta="Puntería" valor={cifras.precision} sufijo="%" />
@@ -177,23 +177,24 @@ export default function Resultados({ participante }) {
             )}
           </div>
 
-          {/* Franja de estado: 18 estados binarios no son un gráfico, son una
-              lista. Con filtro es la respuesta directa a "cuáles acertó y
-              cuáles no"; sin filtro no se dibuja porque mezclaría a todos. */}
+          {/* Franja de estado: una docena larga de estados binarios no son un
+              gráfico, son una lista. Con filtro es la respuesta directa a
+              "cuáles acertó y cuáles no"; sin filtro no se dibuja porque
+              mezclaría a todos. */}
           {activo && (
             <div className="tablero__bloque">
               <h3 className="tablero__subtitulo">Cada pregunta, una por una</h3>
               <ol className="franja">
-                {ejercicios.map((e) => (
-                  <li key={e.id} className="franja__celda" data-estado={e.estado}>
-                    <span className="franja__num cifra">{e.id}</span>
-                    <span className="franja__envios cifra">{e.envios || '·'}</span>
+                {preguntas.map((p) => (
+                  <li key={p.id} className="franja__celda" data-estado={p.estado}>
+                    <span className="franja__num cifra">{p.codigo}</span>
+                    <span className="franja__envios cifra">{p.envios || '·'}</span>
                     <span className="visualmente-oculto">
-                      {e.estado === 'resuelto'
-                        ? `Ejercicio ${e.id}: acertada en ${e.envios} ${e.envios === 1 ? 'envío' : 'envíos'}.`
-                        : e.estado === 'errado'
-                          ? `Ejercicio ${e.id}: errónea, ${e.envios} ${e.envios === 1 ? 'envío' : 'envíos'}.`
-                          : `Ejercicio ${e.id}: sin intentar.`}
+                      {p.estado === 'resuelto'
+                        ? `Pregunta ${p.codigo}: acertada en ${p.envios} ${p.envios === 1 ? 'envío' : 'envíos'}.`
+                        : p.estado === 'errado'
+                          ? `Pregunta ${p.codigo}: errónea, ${p.envios} ${p.envios === 1 ? 'envío' : 'envíos'}.`
+                          : `Pregunta ${p.codigo}: sin intentar.`}
                     </span>
                   </li>
                 ))}
@@ -210,11 +211,11 @@ export default function Resultados({ participante }) {
               <div className="tabla-envoltura">
                 <table className="tabla">
                   <caption className="visualmente-oculto">
-                    Envíos acertados y erróneos por ejercicio
+                    Envíos acertados y erróneos por pregunta
                   </caption>
                   <thead>
                     <tr>
-                      <th scope="col">Ej.</th>
+                      <th scope="col">Nº</th>
                       <th scope="col">Nivel</th>
                       <th scope="col">Acertados</th>
                       <th scope="col">Erróneos</th>
@@ -222,13 +223,13 @@ export default function Resultados({ participante }) {
                     </tr>
                   </thead>
                   <tbody>
-                    {ejercicios.map((e) => (
-                      <tr key={e.id}>
-                        <th scope="row" className="cifra">{e.id}</th>
-                        <td>{e.nivel}</td>
-                        <td className="cifra">{e.aciertos}</td>
-                        <td className="cifra">{e.errores}</td>
-                        <td className="cifra">{e.envios}</td>
+                    {preguntas.map((p) => (
+                      <tr key={p.id}>
+                        <th scope="row" className="cifra">{p.codigo}</th>
+                        <td>{p.nivel}</td>
+                        <td className="cifra">{p.aciertos}</td>
+                        <td className="cifra">{p.errores}</td>
+                        <td className="cifra">{p.envios}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -239,11 +240,11 @@ export default function Resultados({ participante }) {
             <>
               <div className="tablero__bloque">
                 <h3 className="tablero__subtitulo">
-                  {activo ? 'Envíos por ejercicio' : 'Dónde se traba la gente'}
+                  {activo ? 'Envíos por pregunta' : 'Dónde se traba la gente'}
                 </h3>
                 <div className="grafico" style={{ height: 300 }}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={ejercicios} margin={{ top: 12, right: 8, bottom: 4, left: 0 }}>
+                    <BarChart data={preguntas} margin={{ top: 12, right: 8, bottom: 4, left: 0 }}>
                       <defs>
                         {/* La trama es la señal no cromática del error: quien no
                             distingue verde de ámbar la lee por el rayado. */}
@@ -260,7 +261,7 @@ export default function Resultados({ participante }) {
                       </defs>
                       <CartesianGrid stroke={color.rejilla} strokeDasharray="2 4" vertical={false} />
                       <XAxis
-                        dataKey="id"
+                        dataKey="codigo"
                         tick={{ fill: color.tinta, fontSize: 12 }}
                         stroke={color.rejilla}
                         tickLine={false}
@@ -274,7 +275,7 @@ export default function Resultados({ participante }) {
                       />
                       <Tooltip
                         cursor={{ fill: 'rgba(255,255,255,0.04)' }}
-                        content={<Globo ejercicios={ejercicios} />}
+                        content={<Globo preguntas={preguntas} />}
                       />
                       <Legend
                         wrapperStyle={{ fontSize: 12, color: color.tinta, paddingTop: 8 }}
@@ -305,7 +306,7 @@ export default function Resultados({ participante }) {
                   </ResponsiveContainer>
                 </div>
                 <p className="tablero__pie">
-                  Cada barra es un ejercicio. Lo alto es cuánto se ha enviado; lo rayado,
+                  Cada barra es una pregunta. Lo alto es cuánto se ha enviado; lo rayado,
                   cuánto se envió mal.
                 </p>
               </div>
@@ -323,7 +324,7 @@ export default function Resultados({ participante }) {
                         <CartesianGrid stroke={color.rejilla} strokeDasharray="2 4" horizontal={false} />
                         <XAxis
                           type="number"
-                          domain={[0, ejercicios.length]}
+                          domain={[0, preguntas.length]}
                           allowDecimals={false}
                           tick={{ fill: color.tinta, fontSize: 12 }}
                           stroke={color.rejilla}
@@ -345,7 +346,7 @@ export default function Resultados({ participante }) {
                             borderRadius: 10,
                             fontSize: 12,
                           }}
-                          formatter={(v) => [`${v} de ${ejercicios.length}`, 'Resueltos']}
+                          formatter={(v) => [`${v} de ${preguntas.length}`, 'Resueltas']}
                         />
                         {/* Una sola serie: sin leyenda, con rótulo directo. El
                             color marca a la persona, no su puesto. */}
@@ -367,7 +368,7 @@ export default function Resultados({ participante }) {
                     </ResponsiveContainer>
                   </div>
                   <p className="tablero__pie">
-                    Ejercicios distintos resueltos, sobre {ejercicios.length}.
+                    Preguntas distintas resueltas, sobre {preguntas.length}.
                   </p>
                 </div>
               )}
@@ -376,7 +377,7 @@ export default function Resultados({ participante }) {
 
           <div className="tablero__bloque">
             <h3 className="tablero__subtitulo">
-              {activo ? 'Cada envío, con su asiento' : 'Lo último que se envió'}
+              {activo ? 'Cada envío, con su respuesta' : 'Lo último que se envió'}
             </h3>
             <DetalleEnvios envios={activo ? envios : envios.slice(0, 20)} mostrarNombre={!activo} />
           </div>

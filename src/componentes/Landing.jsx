@@ -1,19 +1,34 @@
 import { useId, useState } from 'react'
 import LogoFailFast from './LogoFailFast.jsx'
-import { EJERCICIOS } from '../data/ejercicios.js'
+import SelectorClase from './SelectorClase.jsx'
 
 /**
- * Puerta de entrada. Nadie llega a los ejercicios sin dejar nombre y correo:
+ * Puerta de entrada. Nadie llega a las preguntas sin dejar nombre y correo:
  * es lo que amarra cada respuesta a una persona. Dice para qué se usan los
  * datos antes de pedirlos — el que va a practicar merece saberlo.
+ *
+ * La promesa que se lee arriba es la de la clase seleccionada y viene de la
+ * base: cambiarla aquí cambia el texto, sin tocar el componente.
  */
-export default function Landing({ onRegistrar, enviando, errorServidor, onVerResultados }) {
+export default function Landing({
+  clases,
+  slug,
+  onSeleccionarClase,
+  cargandoClases,
+  errorClases,
+  onRegistrar,
+  enviando,
+  errorServidor,
+  onVerResultados,
+}) {
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')
   const [errores, setErrores] = useState({})
 
   const idNombre = useId()
   const idEmail = useId()
+
+  const clase = clases.find((c) => c.slug === slug)
 
   const enviar = async (evento) => {
     evento.preventDefault()
@@ -35,16 +50,18 @@ export default function Landing({ onRegistrar, enviando, errorServidor, onVerRes
         <LogoFailFast alto={20} />
 
         <div className="landing__intro">
-          <span className="etiqueta-dato">Práctica de partida doble</span>
+          <span className="etiqueta-dato">
+            {clase?.etiqueta ?? (cargandoClases ? 'Cargando…' : 'Clases')}
+          </span>
           <h1 className="landing__titulo">
-            Arma el asiento, línea por línea.
+            {clase?.titular ?? (errorClases || 'Todavía no hay ninguna clase publicada.')}
           </h1>
-          <p className="landing__bajada">
-            {EJERCICIOS.length} hechos económicos, de básico a avanzado. Lees el hecho,
-            eliges las cuentas, decides el lado y verificas. La retroalimentación te
-            dice qué está mal sin darte la respuesta.
-          </p>
+          {clase?.bajada && <p className="landing__bajada">{clase.bajada}</p>}
         </div>
+
+        {/* La clase se elige antes de entrar y se puede cambiar después desde
+            la cabecera. Con una sola publicada, el selector no se dibuja. */}
+        <SelectorClase clases={clases} valor={slug} onCambiar={onSeleccionarClase} />
 
         <form className="landing__form" onSubmit={enviar} noValidate>
           <div className="landing__campo">
@@ -102,7 +119,7 @@ export default function Landing({ onRegistrar, enviando, errorServidor, onVerRes
             {errorServidor}
           </p>
 
-          <button type="submit" className="ff-cta landing__cta" disabled={enviando}>
+          <button type="submit" className="ff-cta landing__cta" disabled={enviando || !clase}>
             {enviando ? 'Entrando…' : 'Empezar a practicar'}
             {!enviando && (
               <svg
@@ -123,8 +140,8 @@ export default function Landing({ onRegistrar, enviando, errorServidor, onVerRes
           </button>
 
           <p className="landing__nota">
-            Guardamos tu nombre, tu correo y cada asiento que envíes, para poder
-            revisar contigo dónde se traba la práctica. Tu nombre y tus asientos
+            Guardamos tu nombre, tu correo y cada respuesta que envíes, para poder
+            revisar contigo dónde se traba la práctica. Tu nombre y tus respuestas
             aparecen en el tablero público; tu correo no sale de aquí. Si vuelves
             con el mismo correo, retomas tu historial.
           </p>

@@ -1,8 +1,28 @@
-# Partida doble · práctica de asientos y cuentas T
+# Clases · presentación y quiz
 
-Aplicación de una sola página para practicar partida doble: se lee un hecho
-económico, se arma el asiento línea por línea y se verifica contra la respuesta
-esperada. Herramienta de aprendizaje personal, en español.
+Aplicación de una sola página para dar una clase: una presentación de láminas y
+un quiz que se corrige solo. En español.
+
+**Todo el contenido vive en Supabase.** El frontend no sabe de contabilidad ni
+de fusiones y adquisiciones: sabe dibujar formas y calificar tipos de pregunta.
+Publicar una clase nueva es insertar filas — no se toca código.
+
+Hoy hay dos clases publicadas:
+
+| Clase | Presentación | Quiz |
+| --- | --- | --- |
+| **Contabilidad Básica** | 12 láminas, de la ecuación contable a las cuentas T | 18 asientos de libro diario |
+| **NVIDIA · Hugging Face** | 14 láminas sobre las compras de NVIDIA | 14 preguntas de opción múltiple sobre startups y M&A avanzado |
+
+El quiz de la segunda clase pregunta conceptos, no cifras: qué es una valoración
+y en qué se diferencia del dinero levantado, qué mide un múltiplo, qué diluye y
+qué no, qué compra un comprador estratégico que un fondo no puede comprar, qué
+riesgo cubre cada instrumento del contrato, de dónde sale el goodwill y qué es
+exactamente lo que teme el regulador. Los números del caso aparecen dentro del
+enunciado como dato de trabajo — ninguna pregunta se responde recordando uno.
+
+El selector de la cabecera cambia de clase en caliente: se recargan las láminas,
+el plan de cuentas, las preguntas y el tablero.
 
 ## Correr
 
@@ -18,35 +38,77 @@ npm run preview  # servir el build
 únicas variables que la app usa, y las dos terminan dentro del bundle: Vite
 inyecta todo lo que empieza por `VITE_`. Eso es correcto para la publishable y
 sería un desastre para la clave de servicio, que nunca debe llevar ese prefijo.
-Sin esas variables la app arranca igual, avisa por consola y no guarda nada.
+Sin esas variables la app arranca, avisa por consola y no muestra ninguna clase:
+desde que el contenido vive en la base, el backend dejó de ser opcional.
 
 ## Cómo está organizado
 
+No hay carpeta `src/data/`: el contenido está en la base.
+
 ```
 src/
-  data/planCuentas.js         Plan de cuentas: nombre, cuenta padre y por qué pertenece ahí.
-  data/ejercicios.js          Los 18 ejercicios: hecho, líneas esperadas y nota explicativa.
-  logica/verificar.js         Comparación sin importar el orden + totales de la balanza.
-  hooks/useProgreso.js        Persistencia en localStorage, tolerante a fallos.
+  App.jsx                     Cabecera, selección de clase y qué vista se muestra.
+
+  motores/index.js            El registro: un motor por cada `preguntas.tipo`.
+  motores/asiento.jsx         Armar un asiento y verificarlo contra el esperado.
+  motores/opcion.jsx          Una correcta entre varias.
+  componentes/Quiz.jsx        El quiz genérico. No conoce ningún tipo: delega en el motor.
+  componentes/Presentacion.jsx  Las láminas de la clase, en un <dialog> modal.
+  componentes/Diagramas.jsx   Las siete formas, dibujadas desde `laminas.datos`.
+  componentes/SelectorClase   El selector, en la cabecera y en el landing.
+
+  lib/clases.js               Catálogo y contenido de una clase.
+  hooks/useClases.js          Qué clases hay y cuál está elegida (localStorage).
+  hooks/useClase.js           El contenido de la elegida.
+  hooks/useProgreso.js        Avance por clase, en localStorage, tolerante a fallos.
   hooks/useParticipante.js    Identidad de la sesión: alta en el landing y localStorage.
+  logica/verificar.js         Comparación de asientos sin importar el orden + la balanza.
   logica/registro.js          Validación de nombre y correo, espejo de la del servidor.
+  logica/promptChatGPT.js     El límite del enlace; el texto lo arma cada motor.
   lib/supabase.js             Cliente, solo con la clave publishable.
   lib/respuestas.js           Envío de cada respuesta + cola de reintento.
-  componentes/Landing.jsx     La puerta: nombre y correo antes de los ejercicios.
+  componentes/Landing.jsx     La puerta: elegir clase, nombre y correo.
   componentes/Resultados.jsx  Tablero público con Recharts. Se carga aparte (lazy).
-  componentes/DetalleEnvios   Cada envío con el asiento tal como se escribió.
+  componentes/DetalleEnvios   Cada envío, dibujado por el motor de su tipo.
   hooks/useResultados.js      Carga + eventos en vivo + reconciliación periódica.
   lib/resultados.js           Lectura pública y suscripción al canal Broadcast.
-  logica/tablero.js           Derivaciones puras del tablero (resumen, por ejercicio…).
+  logica/tablero.js           Derivaciones puras del tablero (resumen, por pregunta…).
   componentes/                Backlog, LineaAsiento, Balanza, Retroalimentacion, CuentasT.
   componentes/LogoFailFast    Lockup de marca, recoloreado para fondo negro.
-  componentes/Aprende.jsx     La baraja de 12 láminas, en un <dialog> modal.
-  data/aprende.js             El contenido de las 12 láminas.
   estilos/fail-fast-tokens.css Tokens del design system de Fail Fast (dark only).
   estilos.css                 Estilos de la app, construidos sobre esos tokens.
-  estilos/aprende.css         Hoja de la baraja: la única con paleta propia.
-  public/aprende/             Las 7 fotos de la baraja, servidas en local.
+  estilos/aprende.css         Hoja de la presentación: la única con paleta propia.
+supabase/migrations/          El esquema y el contenido, versionados.
+.claude/skills/crear-clase/   El skill que crea clases: referencias, plantilla y generador.
+public/aprende/               Las 7 fotos de Contabilidad Básica, servidas en local.
+public/clases/                Capturas de pantalla propias; el resto de imágenes se enlaza.
 ```
+
+### Publicar una clase nueva
+
+Cinco `insert`, ninguno en `src/`:
+
+1. Una fila en `clases` (slug, nombre y los tres textos del landing).
+2. Sus `laminas`, en orden. Cada una puede nombrar una de las siete formas y
+   traer sus `datos`.
+3. Sus `cuentas`, solo si va a tener preguntas de tipo `asiento`.
+4. Sus `preguntas`, con `tipo` y `datos`.
+5. Recargar. El selector la muestra sola.
+
+Hay un **skill** que hace todo eso: `.claude/skills/crear-clase/`. Trae la
+referencia de las siete formas y de cómo se escribe una lámina y una pregunta,
+una plantilla ejecutable y un generador que valida el contenido y escribe la
+migración:
+
+```bash
+node .claude/skills/crear-clase/herramientas/generar.mjs mi-clase.mjs --verificar-imagenes
+```
+
+El generador aborta —sin escribir nada— si una pregunta tiene dos respuestas
+correctas, si un asiento no cuadra, si una cuenta no está en el plan de la
+clase, si una lámina nombra una forma que no existe o si una imagen no
+responde; y avisa cuando una lámina se pasa de palabras o cuando una imagen
+raster pesa de más.
 
 ## Design system
 
@@ -149,22 +211,40 @@ traba la práctica.
 ### El modelo
 
 ```
-participantes  1 ── N  respuestas  N ── 1  ejercicios
-                        │
-                        └── 1 ── N  respuesta_lineas
+clases  1 ── N  laminas          (la presentación)
+   │
+   ├── 1 ── N  cuentas           (plan de cuentas; solo para preguntas de asiento)
+   │
+   └── 1 ── N  preguntas  N ── 1  respuestas  N ── 1  participantes
+                                      │
+                                      └── 1 ── N  respuesta_lineas
 ```
 
 | Tabla | Una fila es… |
 | --- | --- |
+| `clases` | Un tema, con los textos del landing. La unidad que el selector cambia. |
+| `laminas` | Una lámina: rótulo, título en segmentos, cuerpo de bloques y, si la tiene, una forma o una foto. |
+| `cuentas` | Una cuenta del plan de la clase, con la razón por la que pertenece a su familia. |
+| `preguntas` | Una pregunta. `tipo` decide qué motor del frontend la atiende. |
 | `participantes` | Una persona. Identidad única por correo, normalizado a minúsculas. |
-| `ejercicios` | Uno de los 18. Espejo de `src/data/ejercicios.js`. |
-| `respuestas` | **Un envío**: quién, qué ejercicio, qué número de intento y si acertó. |
+| `respuestas` | **Un envío**: quién, qué pregunta, qué número de intento y si acertó. |
 | `respuesta_lineas` | Una línea del asiento tal como la escribió la persona. |
 
-**Las líneas son filas, no un blob JSON.** Un asiento contable ya es una
-relación: cada línea tiene cuenta, cuenta padre, lado y monto. Guardarlo como
-JSON obligaría a desarmarlo en cada consulta; así, «qué cuenta se confunde más»
-o «en qué lado se equivoca la gente» son un `group by`.
+**`preguntas.tipo` es el punto de extensión.** Hoy vale `asiento` (armar un
+asiento de libro diario) u `opcion` (una correcta entre varias), y `datos` lleva
+lo propio de cada uno: `{lineas:[…]}` o `{opciones:[…]}`. Un tipo nuevo es un
+módulo en `src/motores/` y una línea en su registro — no toca el esquema, ni el
+quiz, ni el tablero.
+
+**Las líneas del asiento son filas, no un blob JSON.** Un asiento contable ya es
+una relación: cada línea tiene cuenta, cuenta padre, lado y monto. Guardarlo como
+JSON obligaría a desarmarlo en cada consulta; así, «qué cuenta se confunde más» o
+«en qué lado se equivoca la gente» son un `group by`.
+
+**`respuestas.datos` es el sobre genérico**, y no se solapa con esa tabla: al
+guardar, las líneas salen del sobre y van a `respuesta_lineas`; al leer, se
+vuelven a unir. Cada dato en un solo sitio, y un tipo de pregunta nuevo no
+necesita una tabla propia.
 
 **Cada intento se guarda entero, no se pisa.** Reintentar es parte del ejercicio,
 y la secuencia de intentos —qué cambió entre el primero y el segundo— dice más
@@ -179,17 +259,28 @@ devuelve `incompleto` y no hubo respuesta que registrar: solo se envían los
 
 La app es una SPA sin login. Con la clave publishable no hay usuario autenticado
 y por lo tanto no hay forma honesta de escribir una política de RLS por fila. La
-salida es la contraria: **RLS activo y sin políticas en las cuatro tablas** —todo
-acceso directo desde `anon` queda denegado, incluida la lectura de correos— y las
-escrituras pasan por dos funciones `SECURITY DEFINER` con `search_path` fijo:
+salida es la contraria: **RLS activo y sin políticas en todas las tablas** —todo
+acceso directo desde `anon` queda denegado, incluida la lectura de correos— y
+todo pasa por funciones `SECURITY DEFINER` con `search_path` fijo:
 
+- `clases_publicas()` → el catálogo, sin contenido. Lo que necesitan el selector
+  y el landing.
+- `clase_completa(slug)` → láminas, plan de cuentas y preguntas de una clase.
 - `registrar_participante(nombre, email)` → devuelve el `uuid`. Idempotente por
   correo: volver a entrar con el mismo continúa el mismo historial.
-- `registrar_respuesta(participante_id, ejercicio_id, es_correcta, lineas)` →
-  escribe la cabecera y sus líneas en una sola transacción.
+- `registrar_respuesta(participante_id, pregunta_id, es_correcta, datos)` →
+  escribe la cabecera y, si el sobre trae líneas, también sus líneas, en una sola
+  transacción. **No sabe qué tipos de pregunta existen.**
+- `resultados_publicos(clase_id)` y `id_publico_propio(participante_id)` → la
+  lectura del tablero, recortada.
 
-Las dos validan y normalizan lo que reciben, y ninguna devuelve datos de
-terceros. El linter de Supabase marca ambas como «ejecutables por anon»: es
+Todas validan y normalizan lo que reciben, y ninguna devuelve datos de terceros.
+
+**`clase_completa` devuelve también la respuesta esperada de cada pregunta**,
+porque la calificación es del lado del cliente. Es la misma exposición que había
+cuando el contenido viajaba en el bundle, ni más ni menos: cualquiera puede leer
+las respuestas si se lo propone. Moverla al servidor es un cambio aparte, con su
+propia decisión de producto. El linter de Supabase marca ambas como «ejecutables por anon»: es
 intencional, es exactamente el flujo. Para leer los datos está la vista
 `vista_respuestas` (`security_invoker`, así que hereda ese mismo RLS y solo la
 ven los roles que ya pueden leer las tablas).
@@ -207,9 +298,30 @@ rechazos del servidor por datos inválidos se descartan en vez de reintentarse
 para siempre. Verificar el asiento nunca depende de que el guardado funcione:
 misma regla que el progreso en localStorage.
 
-Las migraciones están aplicadas en el proyecto de Supabase
-(`crear_modelo_participantes_respuestas`, `crear_rpc_registro_y_respuestas`,
-`sembrar_catalogo_ejercicios`, `crear_vista_respuestas_detalle`).
+### Migraciones
+
+Están en `supabase/migrations/` y aplicadas en el proyecto. Las cuatro del
+modelo por clase se leen en orden:
+
+| Migración | Qué hace |
+| --- | --- |
+| `crear_modelo_clases` | `clases`, `laminas`, `cuentas`, `preguntas`. |
+| `sembrar_clase_contabilidad_basica` | Generada desde los `src/data/*.js` que eran la fuente, para que el contenido no pudiera cambiar al mudarse. |
+| `migrar_respuestas_a_preguntas` | `respuestas` pasa a colgar de `preguntas`. Los 714 envíos y sus 1.462 líneas se conservan. |
+| `sembrar_clase_nvidia_hugging_face` | La segunda clase. |
+| `rpcs_por_clase` | Las funciones de lectura y escritura, rehechas. |
+| `revocar_permisos_anon` | Quitarle a `anon` los permisos de tabla que Supabase concede por defecto, para que las tablas nuevas queden negadas dos veces como las viejas. |
+| `preguntas_conceptuales_nvidia` | Reemplaza las 12 preguntas de la segunda clase: las primeras se respondían recordando cifras. Trae un guard que aborta si alguien ya había enviado respuestas. |
+| `laminas_nvidia_con_imagenes` | Recorta el texto de las 12 láminas y mueve al visual lo que se puede enseñar en vez de contar: los logos de la operación, los ocho inversionistas de la ronda, el historial antimonopolio con su desenlace. |
+| `afinar_imagenes_nvidia` | Cambia el original de Wikimedia (2 MB, no alcanzaba a cargar) por su miniatura de 960 px. |
+| `limpiar_baraja_nvidia` | Quita el rótulo de cada lámina y la atribución de la portada, cambia los dieciséis guiones largos por el signo que la frase pedía, y reemplaza el avatar cuadrado de NVIDIA por su logotipo horizontal. `laminas.etiqueta` pasa a ser opcional. |
+| `escala_optica_marcas` | Iguala cómo se ve el logotipo de Hugging Face al lado de los otros. |
+| `corregir_groq` | La portada afirmaba que Hugging Face sería la mayor adquisición de NVIDIA. Es falso: en diciembre de 2025 pagó unos USD 20.000 millones por Groq. Pero no compró la empresa (licenció su tecnología y contrató a su equipo), así que nunca se notificó al regulador. La corrección entra en la portada, en la lámina del regulador y en dos preguntas: el quiz pasa a 13. |
+| `groq_contra_hugging_face` | Saca la lámina genérica de los cuatro estados y pone tres en su lugar: qué hace Groq, las dos compras lado a lado, y la pila que NVIDIA lleva comprada capa por capa. La baraja pasa a 14 y el quiz también. Las fotos ganan `credito`, porque el die del LPU es CC BY-SA y hay que acreditarlo. |
+| `portada_y_hugging_face` | La portada pierde el párrafo sobre el estado de la operación, que la lámina 13 dice mejor. La segunda cambia la foto de una GPU por una captura de huggingface.co y reescribe el texto en llano. |
+
+Antes de esto el esquema solo existía en el proyecto remoto; ahora el repo
+alcanza para reconstruirlo.
 
 ## Tablero de resultados
 
@@ -293,8 +405,21 @@ tablero. El bundle de quien viene a practicar creció 4 kB.
 
 ## Decisiones que no son accidentales
 
+**El frontend no tiene contenido, tiene formas.** Las siete formas de diagrama de
+la presentación —`registro`, `flujo`, `balance`, `partido`, `tabla`, `bloqueT`,
+`marcas`— dibujan una estructura y nada más; qué dice cada una lo pone la columna `datos`
+de la lámina. La misma tabla sirve para las cinco familias contables y para
+comparar Mellanox, Arm y Hugging Face. Las dos clases publicadas las usan
+sin compartir una línea de contenido.
+
+**Un motor por tipo de pregunta.** `src/motores/` tiene un módulo por cada valor
+de `preguntas.tipo`, y cada uno sabe cinco cosas y solo esas: con qué borrador
+empieza, cómo se edita, cómo se califica, qué se guarda y cómo se muestra —la
+solución al acertar, el envío en el tablero—. `Quiz.jsx` no conoce ningún tipo:
+busca el motor en el registro y le delega.
+
 **La cuenta padre no se autocompleta.** Al elegir "Caja" el selector de cuenta
-padre queda vacío. `planCuentas.js` sabe que Caja es Activo, pero ese dato solo
+padre queda vacío. La tabla `cuentas` sabe que Caja es Activo, pero ese dato solo
 lo consume la verificación: clasificar es lo que se está practicando. Por la
 misma razón el selector de cuentas es una lista plana alfabética y no está
 agrupada por categoría — agruparla regalaría la respuesta.
@@ -303,10 +428,17 @@ agrupada por categoría — agruparla regalaría la respuesta.
 puede cuadrar perfectamente con las cuentas equivocadas, y la interfaz lo deja
 pasar a propósito: el texto bajo la balanza lo dice explícitamente.
 
-**La retroalimentación no revela la respuesta.** Cuando hay error se señala qué
-está mal en cada línea (cuenta padre, lado, monto, cuenta que sobra). Si falta
-una línea se dice el lado pero nunca la cuenta. Las cuentas T y la nota
-explicativa solo aparecen cuando el asiento está correcto.
+**La retroalimentación no revela la respuesta.** En un asiento se señala qué está
+mal en cada línea (cuenta padre, lado, monto, cuenta que sobra); si falta una
+línea se dice el lado pero nunca la cuenta. En una pregunta de opción se dice
+cuál falló, no cuál era. La solución y la nota explicativa solo aparecen al
+acertar.
+
+**El enlace a ChatGPT no revela lo mismo en los dos tipos.** En un asiento lleva
+la respuesta esperada dentro —quien lo abre ya pidió que se la expliquen, y el
+prompt le prohíbe limitarse a soltarla—. En una pregunta de opción no: con cuatro
+opciones, decírselo a ChatGPT es decírselo al usuario, así que se le pide que
+razone sobre todas.
 
 **El lado se lee sin depender del color.** Los dos botones de lado son píldoras
 con una flecha que apunta a la columna donde caerá el monto en la cuenta T: `←`
@@ -325,12 +457,12 @@ localStorage están envueltas en `try/catch`; si el almacenamiento está
 bloqueado o el dato guardado está corrupto, la app arranca limpia y sigue
 funcionando en memoria.
 
-## Sobre el ejercicio 05
+## Sobre la pregunta 05 de Contabilidad Básica
 
 El enunciado original de este ejercicio llegó truncado: se perdieron las líneas
 del asiento y el comienzo de la nota. Se reconstruyó de la única forma que el
 hecho económico admite (abonar 500.000 en efectivo a un proveedor: Cuentas por
 Pagar al débito contra Caja al crédito) y se completó la nota a partir del
-fragmento que sobrevivió. La línea queda marcada con `reconstruido: true` en
-`src/data/ejercicios.js` para poder revisarla contra la fuente. Los otros 17
+fragmento que sobrevivió. La pregunta queda marcada con `"reconstruido": true`
+dentro de su columna `datos` para poder revisarla contra la fuente. Los otros 17
 ejercicios son literales.

@@ -171,12 +171,12 @@
   color: var(--dk-accent);
 }
 
-/* ── Las cinco familias, en fichas ───────────────────────── */
+/* ── Lista con ficha ─────────────────────────────────────── */
 
-/* Rejilla y no flujo: las fichas quedan en columna, y así las dos de débito
-   se leen como un bloque y las tres de crédito como otro. El ancho corto las
-   mantiene cerca del nombre en vez de mandarlas al borde de la columna. */
-.aprende__familias {
+/* Rejilla y no flujo: las fichas quedan en columna, y así las que comparten
+   tono se leen como un bloque. El ancho corto las mantiene cerca del texto en
+   vez de mandarlas al borde de la columna. */
+.aprende__fichas {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
@@ -184,20 +184,21 @@
   max-width: 340px;
 }
 
-.aprende__familias li {
+.aprende__fichas li {
   display: grid;
   grid-column: 1 / -1;
   grid-template-columns: subgrid;
   align-items: center;
 }
 
-.aprende__familia {
+.aprende__item {
   font-weight: 500;
 }
 
-/* Débito y crédito toman la escala semántica de la app —azul y ciruela—, la
-   misma que verán en el asiento apenas cierren la baraja. El color no va
-   solo: la ficha lleva la flecha de "aumenta" y la palabra del lado. */
+/* Los tonos son los de la escala semántica de la app —azul y ciruela—, los
+   mismos que verá quien pase al asiento apenas cierre la presentación. El
+   color no va solo: la ficha lleva su palabra, y una flecha si la lámina se la
+   dio. Qué significa cada tono lo dice el contenido, no la hoja. */
 .aprende__ficha {
   display: inline-flex;
   align-items: center;
@@ -211,16 +212,22 @@
   white-space: nowrap;
 }
 
-.aprende__ficha[data-lado='Débito'] {
+.aprende__ficha[data-tono='info'] {
   background: var(--debito-bg);
   border-color: var(--debito-borde);
   color: var(--debito-fg);
 }
 
-.aprende__ficha[data-lado='Crédito'] {
+.aprende__ficha[data-tono='ciruela'] {
   background: var(--credito-bg);
   border-color: var(--credito-borde);
   color: var(--credito-fg);
+}
+
+.aprende__ficha[data-tono='neutro'] {
+  background: transparent;
+  border-color: var(--dk-linea);
+  color: var(--dk-fg-muted);
 }
 
 .aprende__ficha-flecha {
@@ -245,6 +252,21 @@
   object-fit: cover;
 }
 
+/* La foto y, si la licencia lo pide, quién la hizo. */
+.aprende__figura {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.aprende__credito {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-align: right;
+  color: var(--dk-fg-faint);
+}
+
 /* Vertical o de baja resolución: se muestra entera en vez de recortarse. */
 .aprende__foto[data-encuadre='contener'] {
   object-fit: contain;
@@ -252,6 +274,7 @@
 
 /* La foto no cargó: su descripción ocupa el hueco en vez de dejarlo vacío. */
 .aprende__foto--sin-foto,
+.dg__marca-img--sin-foto,
 .dg__foto--sin-foto {
   display: grid;
   place-content: center;
@@ -324,7 +347,7 @@
   color: var(--dk-fg-faint);
 }
 
-/* ── Lámina 2 · entrada simple ───────────────────────────── */
+/* ── Forma: registro ─────────────────────────────────────── */
 
 .dg--simple {
   max-width: 320px;
@@ -348,8 +371,8 @@
   border-bottom: 1px solid var(--dk-linea-suave);
 }
 
-/* El signo va además del color: en la lámina 2 el rojo y el verde son el
-   contenido, pero no pueden ser la única señal. */
+/* El signo va además del color: donde el rojo y el verde son el contenido,
+   no pueden ser la única señal. Una fila sin signo no se colorea. */
 .dg__fila[data-signo='entra'] .dg__signo,
 .dg__fila[data-signo='entra'] .dg__monto {
   color: var(--ff-success-fg);
@@ -358,6 +381,20 @@
 .dg__fila[data-signo='sale'] .dg__signo,
 .dg__fila[data-signo='sale'] .dg__monto {
   color: var(--ff-danger-fg);
+}
+
+/* Con una columna de texto la fila crece a cuatro: el monto deja de estirarse
+   y se pega a su marca. Las láminas sin texto no cambian. */
+.dg--simple[data-columnas='4'] .dg__fila {
+  grid-template-columns: 1rem minmax(0, 1fr) auto 2rem;
+}
+
+/* A diferencia de la columna del balance, esta envuelve: aquí el texto suele
+   ser una etiqueta larga y recortarla con puntos suspensivos pierde el dato. */
+.dg__texto {
+  min-width: 0;
+  line-height: 1.35;
+  color: var(--dk-fg-muted);
 }
 
 .dg__signo {
@@ -383,7 +420,7 @@
   color: var(--dk-fg);
 }
 
-/* ── Lámina 8 · causa y efecto ───────────────────────────── */
+/* ── Forma: flujo ────────────────────────────────────────── */
 
 .dg--causa {
   display: flex;
@@ -415,7 +452,7 @@
   object-fit: cover;
 }
 
-/* ── Lámina 9 · verificación ─────────────────────────────── */
+/* ── Forma: balance ──────────────────────────────────────── */
 
 .dg--verificacion {
   display: grid;
@@ -499,7 +536,7 @@
   color: var(--dk-accent);
 }
 
-/* ── Lámina 10 · el mayor partido ────────────────────────── */
+/* ── Forma: partido ──────────────────────────────────────── */
 
 .dg--mayor {
   display: grid;
@@ -533,7 +570,7 @@
   );
 }
 
-/* ── Lámina 11 · las cinco familias ──────────────────────── */
+/* ── Forma: tabla ────────────────────────────────────────── */
 
 .dg--tabla {
   max-width: 460px;
@@ -587,8 +624,8 @@
   flex: none;
 }
 
-/* La celda de lado: flecha + palabra. El color usa sólo los dos tonos de la
-   baraja; quien no distinga el azul lee la palabra y ve hacia dónde apunta. */
+/* La celda con tono: flecha opcional + palabra. Quien no distinga el azul lee
+   la palabra y, si la hay, ve hacia dónde apunta la flecha. */
 .dg__lado-celda {
   display: inline-flex;
   align-items: center;
@@ -596,12 +633,16 @@
   white-space: nowrap;
 }
 
-.dg__lado-celda[data-lado='Débito'] {
+.dg__lado-celda[data-tono='info'] {
   color: var(--debito-fg);
 }
 
-.dg__lado-celda[data-lado='Crédito'] {
+.dg__lado-celda[data-tono='ciruela'] {
   color: var(--credito-fg);
+}
+
+.dg__lado-celda[data-tono='neutro'] {
+  color: var(--dk-fg);
 }
 
 .dg__flecha-lado {
@@ -610,7 +651,106 @@
   flex: none;
 }
 
-/* ── Lámina 12 · la cuenta T ─────────────────────────────── */
+/* ── Forma: marcas ───────────────────────────────────────── */
+
+/* Los logos van sobre placa clara. No es decoración: una marca viene dibujada
+   para fondo blanco y sobre el negro de la baraja la mitad se pierde. */
+.dg--marcas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ff-space-4);
+  align-items: center;
+  width: 100%;
+  max-width: 360px;
+}
+
+.dg__marcas {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--ff-space-3);
+  width: 100%;
+  align-items: center;
+  justify-items: center;
+}
+
+.dg--marcas[data-columnas='dos'] .dg__marcas {
+  grid-template-columns: 1fr 1fr;
+}
+
+.dg__marca-celda {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.dg__marca {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  padding: 11px 16px;
+  background: #ffffff;
+  border-radius: var(--ff-radius-md);
+}
+
+/* Alto fijo y ancho automático. Es lo que hace que un logotipo alargado y uno
+   casi cuadrado pesen lo mismo en pantalla: si en vez de eso se estiran al
+   ancho de la placa, el chico queda perdido en medio de un rectángulo blanco. */
+.dg__marca-img {
+  height: calc(28px * var(--escala, 1));
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+/* Dos marcas y nada más: es una portada. Las placas van del mismo tamaño y los
+   logotipos a la misma altura, que es lo que hace que se lean como las dos
+   partes de una operación y no como dos elementos sueltos. */
+.dg--marcas[data-tamano='grande'] {
+  max-width: 264px;
+}
+
+.dg--marcas[data-tamano='grande'] .dg__marcas {
+  gap: var(--ff-space-2);
+}
+
+.dg--marcas[data-tamano='grande'] .dg__marca {
+  padding: 20px 24px;
+}
+
+.dg--marcas[data-tamano='grande'] .dg__marca-img {
+  height: calc(34px * var(--escala, 1));
+}
+
+/* El signo entre dos marcas: el «×» de una operación. */
+.dg__marca-signo {
+  font-size: var(--ff-text-lg);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--dk-fg-faint);
+}
+
+.dg__marca-pie {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: center;
+  text-wrap: balance;
+  color: var(--dk-fg-muted);
+}
+
+.dg__marca-total {
+  font-size: var(--ff-text-xs);
+  line-height: 1.45;
+  text-align: center;
+  text-wrap: balance;
+  color: var(--dk-fg-muted);
+}
+
+/* ── Forma: bloque en T ──────────────────────────────────── */
 
 .dg--t {
   max-width: 340px;

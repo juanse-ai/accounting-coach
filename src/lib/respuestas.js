@@ -1,12 +1,15 @@
 import { supabase, hayBackend } from './supabase.js'
 
-const CLAVE_PENDIENTES = 'partida-doble:pendientes:v1'
+const CLAVE_PENDIENTES = 'partida-doble:pendientes:v2'
+// La cola v1 hablaba de ejercicios, que ya no existen: el servidor la
+// rechazaría para siempre. Se descarta de una vez en vez de reintentarla.
+const CLAVE_PENDIENTES_V1 = 'partida-doble:pendientes:v1'
 const MAX_PENDIENTES = 50
 
-// Cada envío se manda en el momento, no al terminar el set. Si la red falla,
+// Cada envío se manda en el momento, no al terminar la clase. Si la red falla,
 // el envío no se pierde: queda en una cola en localStorage y se reintenta con
 // el siguiente envío o al abrir la app. Nada de esto puede lanzar hacia la
-// interfaz — verificar el asiento tiene que funcionar aunque el backend no.
+// interfaz — verificar la respuesta tiene que funcionar aunque el backend no.
 
 function leerPendientes() {
   try {
@@ -47,6 +50,12 @@ async function enviar(payload) {
  */
 export async function vaciarPendientes() {
   if (!hayBackend) return
+  try {
+    window.localStorage.removeItem(CLAVE_PENDIENTES_V1)
+  } catch {
+    // Da igual: si no se puede borrar, tampoco se lee.
+  }
+
   let cola = leerPendientes()
   if (cola.length === 0) return
 
@@ -65,24 +74,19 @@ export async function vaciarPendientes() {
 }
 
 /**
- * Guarda un envío del asiento. Devuelve 'guardado' | 'pendiente' | 'omitido'
- * y nunca lanza.
+ * Guarda un envío. `datos` es el sobre que arma el motor de la pregunta: la
+ * función no sabe qué hay dentro y no le hace falta.
+ *
+ * Devuelve 'guardado' | 'pendiente' | 'omitido' y nunca lanza.
  */
-export async function registrarRespuesta({ participanteId, ejercicioId, esCorrecta, lineas }) {
+export async function registrarRespuesta({ participanteId, preguntaId, esCorrecta, datos }) {
   if (!hayBackend || !participanteId) return 'omitido'
 
   const payload = {
     p_participante_id: participanteId,
-    p_ejercicio_id: ejercicioId,
+    p_pregunta_id: preguntaId,
     p_es_correcta: esCorrecta,
-    // Solo las líneas que la persona llenó de verdad, con el monto numérico
-    // que ya calculó el formulario.
-    p_lineas: lineas.map((l) => ({
-      cuenta: l.cuenta,
-      padre: l.padre,
-      lado: l.lado,
-      monto: l.monto,
-    })),
+    p_datos: datos ?? {},
   }
 
   try {

@@ -1,7 +1,9 @@
-import { buscarCuenta } from '../data/planCuentas.js'
-
 export const DEBITO = 'Débito'
 export const CREDITO = 'Crédito'
+
+// Vocabulario del tipo de pregunta «asiento», no contenido de ninguna clase:
+// es el mismo CHECK que tiene `respuesta_lineas.cuenta_padre` en la base.
+export const CUENTAS_PADRE = ['Activo', 'Pasivo', 'Patrimonio', 'Ingreso', 'Gasto']
 
 export const lineaVacia = (linea) =>
   !linea.cuenta && !linea.padre && !linea.lado && !linea.monto
@@ -25,7 +27,7 @@ const otroLado = (lado) => (lado === DEBITO ? CREDITO : DEBITO)
 const plural = (n, sing, pl) => (n === 1 ? sing : pl)
 
 // Una pista por asiento, elegida por el tipo de error dominante.
-// Son reglas generales de contabilidad, no la respuesta del ejercicio.
+// Son reglas generales de contabilidad, no la respuesta de la pregunta.
 function elegirPista({ sobran, faltan, padresMal, ladosMal, montosMal }) {
   if (sobran || faltan) {
     return 'Pregúntate qué recibió el negocio y qué entregó o en qué se comprometió a cambio.'
@@ -46,9 +48,13 @@ function elegirPista({ sobran, faltan, padresMal, ladosMal, montosMal }) {
  * Compara el asiento del usuario contra el esperado sin importar el orden.
  * Nunca devuelve la respuesta completa: solo señala qué está mal en cada línea
  * y, si falta una línea, dice el lado pero no la cuenta.
+ *
+ * `cuentas` es el plan de cuentas de la clase; solo se usa para explicar por
+ * qué una cuenta pertenece a su familia cuando alguien la clasifica mal.
  */
-export function verificarAsiento(lineasUsuario, esperadas) {
+export function verificarAsiento(lineasUsuario, esperadas, cuentas = []) {
   const usadas = lineasUsuario.filter((l) => !lineaVacia(l))
+  const buscarCuenta = (nombre) => cuentas.find((c) => c.nombre === nombre) ?? null
 
   if (usadas.length === 0) {
     return { estado: 'incompleto', mensaje: 'Arma el asiento antes de verificar.' }

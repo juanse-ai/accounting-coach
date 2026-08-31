@@ -1,5 +1,3 @@
-import { urlChatGPT } from '../logica/promptChatGPT.js'
-
 function LogoOpenAI() {
   return (
     <svg
@@ -14,13 +12,19 @@ function LogoOpenAI() {
   )
 }
 
-export default function Retroalimentacion({ resultado, ejercicio, lineas }) {
+/**
+ * Qué salió mal, sin decir qué era lo correcto.
+ *
+ * No sabe de qué tipo es la pregunta: lee el resultado —que todos los motores
+ * devuelven con la misma forma— y le pide al motor el enlace de ayuda.
+ */
+export default function Retroalimentacion({ resultado, pregunta, borrador, motor }) {
   if (!resultado) return null
 
   if (resultado.estado === 'incompleto') {
     return (
       <section className="retro retro--aviso" role="alert">
-        <p className="retro__titulo">Falta completar el asiento</p>
+        <p className="retro__titulo">Falta algo</p>
         <p className="retro__texto">{resultado.mensaje}</p>
       </section>
     )
@@ -29,13 +33,13 @@ export default function Retroalimentacion({ resultado, ejercicio, lineas }) {
   if (resultado.estado === 'correcto') {
     return (
       <section className="retro retro--acierto" role="status">
-        <p className="retro__titulo">Asiento correcto</p>
-        <p className="retro__texto">
-          Las cuentas, su clasificación, los lados y los montos coinciden con el registro esperado.
-        </p>
+        <p className="retro__titulo">Respuesta correcta</p>
+        <p className="retro__texto">Es exactamente lo que se esperaba.</p>
       </section>
     )
   }
+
+  const ayuda = motor.ayuda?.(pregunta, borrador, resultado)
 
   return (
     <section className="retro retro--error" role="alert">
@@ -56,26 +60,29 @@ export default function Retroalimentacion({ resultado, ejercicio, lineas }) {
           </li>
         ))}
       </ul>
-      <p className="retro__pista">
-        <span className="etiqueta-dato">Pista</span>
-        {resultado.pista}
-      </p>
+      {resultado.pista && (
+        <p className="retro__pista">
+          <span className="etiqueta-dato">Pista</span>
+          {resultado.pista}
+        </p>
+      )}
 
-      {/* Salida de emergencia: se lleva el ejercicio entero a ChatGPT —el hecho,
-          lo que registraste, el asiento esperado y los errores— para que
-          explique el razonamiento. Solo aparece cuando el asiento salió mal. */}
-      <div className="retro__acciones">
-        <a
-          className="boton boton--chatgpt"
-          href={urlChatGPT(ejercicio, lineas, resultado)}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <LogoOpenAI />
-          Pregúntale a ChatGPT
-          <span className="visualmente-oculto">(se abre en una pestaña nueva)</span>
-        </a>
-      </div>
+      {/* Salida de emergencia: se lleva la pregunta entera a ChatGPT para que
+          explique el razonamiento. Solo aparece cuando algo salió mal. */}
+      {ayuda && (
+        <div className="retro__acciones">
+          <a
+            className="boton boton--chatgpt"
+            href={ayuda}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <LogoOpenAI />
+            Pregúntale a ChatGPT
+            <span className="visualmente-oculto">(se abre en una pestaña nueva)</span>
+          </a>
+        </div>
+      )}
     </section>
   )
 }
