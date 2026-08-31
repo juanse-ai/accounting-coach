@@ -116,6 +116,22 @@ function validarPregunta(p, i, cuentas) {
     o.forEach((x, k) => String(x.texto ?? '').trim() || mal(`${donde}, opción ${k + 1}: sin texto.`))
   }
 
+  // El apoyo visual: una fila de caras debajo del enunciado. Sin `alt` la
+  // pregunta se vuelve irresoluble para quien no ve la foto, así que no es
+  // opcional; el `pie` sí, porque rotular las caras suele regalar la respuesta.
+  if (p.apoyo) {
+    const rs = p.apoyo.retratos ?? []
+    if (!Array.isArray(rs) || rs.length < 1 || rs.length > 6)
+      mal(`${donde}: el apoyo lleva ${rs.length ?? 0} retratos; van entre 1 y 6.`)
+    rs.forEach((r, k) => {
+      if (!String(r?.src ?? '').trim()) mal(`${donde}, retrato ${k + 1}: sin src.`)
+      if (!String(r?.alt ?? '').trim())
+        mal(`${donde}, retrato ${k + 1}: sin alt. Describe a la persona sin nombrarla.`)
+    })
+    if (!String(p.apoyo.credito ?? '').trim())
+      ojo(`${donde}: retratos sin crédito. Una fotografía de Commons casi siempre obliga a acreditar.`)
+  }
+
   if (p.tipo === 'asiento') {
     const ls = p.datos?.lineas ?? []
     if (ls.length < 1 || ls.length > 20) return mal(`${donde}: ${ls.length} líneas; van entre 1 y 20.`)
@@ -136,13 +152,16 @@ function validarPregunta(p, i, cuentas) {
 
 /* ── Imágenes ─────────────────────────────────────────────────────────── */
 
-function urlsDe(laminas) {
+function urlsDe(laminas, preguntas = []) {
   const out = []
   for (const [i, l] of laminas.entries()) {
     if (l.imagen?.src) out.push({ url: l.imagen.src, donde: `Lámina ${i + 1} · imagen` })
     for (const [k, m] of (l.datos?.items ?? []).entries())
       if (m?.src) out.push({ url: m.src, donde: `Lámina ${i + 1} · marca ${k + 1}` })
   }
+  for (const [i, p] of preguntas.entries())
+    for (const [k, r] of (p.apoyo?.retratos ?? []).entries())
+      if (r?.src) out.push({ url: r.src, donde: `Pregunta ${p.codigo ?? i + 1} · retrato ${k + 1}` })
   return out
 }
 
@@ -154,8 +173,8 @@ const RESPIRO_MS = 300
 
 const dormir = (ms) => new Promise((r) => setTimeout(r, ms))
 
-async function verificarImagenes(laminas) {
-  const urls = urlsDe(laminas)
+async function verificarImagenes(laminas, preguntas) {
+  const urls = urlsDe(laminas, preguntas)
   if (!urls.length) return
   console.log(`\nVerificando ${urls.length} imágenes…`)
   for (const [i, { url, donde }] of urls.entries()) {
@@ -217,13 +236,13 @@ function sql({ clase, laminas, cuentas = [], preguntas }) {
   }
 
   L.push('')
-  L.push('insert into public.preguntas (clase_id, codigo, orden, tipo, nivel, enunciado, aviso, nota, datos)')
+  L.push('insert into public.preguntas (clase_id, codigo, orden, tipo, nivel, enunciado, aviso, nota, apoyo, datos)')
   L.push('values')
   L.push(
     preguntas
       .map((p, i) =>
         `  (${c}, ${q(p.codigo ?? String(i + 1).padStart(2, '0'))}, ${i + 1}, ${q(p.tipo)}, ${q(p.nivel)}, ` +
-        `${q(p.enunciado)}, ${q(p.aviso ?? null)}, ${q(p.nota)}, ${j(p.datos)})`
+        `${q(p.enunciado)}, ${q(p.aviso ?? null)}, ${q(p.nota)}, ${j(p.apoyo ?? null)}, ${j(p.datos)})`
       )
       .join(',\n') + ';'
   )
@@ -265,7 +284,7 @@ preguntas.forEach((p, i) => {
 if (preguntas.some((p) => p.tipo === 'asiento') && !cuentas.length)
   mal('Hay preguntas de tipo «asiento» pero la clase no trae plan de cuentas.')
 
-if (args.includes('--verificar-imagenes')) await verificarImagenes(laminas)
+if (args.includes('--verificar-imagenes')) await verificarImagenes(laminas, preguntas)
 
 for (const a of avisos) console.warn(`⚠  ${a}`)
 if (fallos.length) {

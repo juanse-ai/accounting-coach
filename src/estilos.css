@@ -1003,6 +1003,74 @@ select {
   color: var(--ff-fg-subtle);
 }
 
+/* ── Los retratos de una pregunta ────────────────────────── */
+
+/* Caras en fila cuando la pregunta ES la imagen. Sin placa clara, al revés
+   que los logos de la presentación: una fotografía no se pierde sobre el
+   fondo, y la placa la convertiría en un recorte pegado encima. */
+.retratos {
+  margin: var(--ff-space-5) 0 0;
+}
+
+.retratos__fila {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ff-space-3);
+}
+
+.retratos__celda {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ff-space-2);
+  flex: 0 1 116px;
+  min-width: 0;
+}
+
+/* Cuadrado y recortado por arriba. Las caras vienen de fotos de proporciones
+   distintas y tomadas a distinta distancia; igualar el marco es lo que las
+   hace leerse como una fila y no como tres imágenes sueltas, y el 28% sube el
+   encuadre a donde está la cara en un retrato de medio cuerpo. */
+.retrato {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  object-position: center 28%;
+  border-radius: var(--ff-radius-lg);
+  border: 1px solid var(--ff-border);
+  background: var(--ff-bg-muted);
+}
+
+/* La foto no cargó: su descripción ocupa el hueco. Sin aspect-ratio, porque
+   el texto necesita crecer hacia abajo. */
+.retrato--sin-foto {
+  display: grid;
+  place-content: center;
+  padding: var(--ff-space-4);
+  aspect-ratio: auto;
+  text-align: center;
+  font-size: var(--ff-text-xs);
+  line-height: 1.4;
+  color: var(--ff-fg-subtle);
+}
+
+.retratos__pie {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: center;
+  text-wrap: balance;
+  color: var(--ff-fg-subtle);
+}
+
+.retratos__credito {
+  margin-top: var(--ff-space-3);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--ff-fg-subtle);
+}
+
 
 /* ── Selector de clase ───────────────────────────────────── */
 

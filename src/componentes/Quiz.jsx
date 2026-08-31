@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Backlog from './Backlog.jsx'
+import Retratos from './Retratos.jsx'
 import Retroalimentacion from './Retroalimentacion.jsx'
 import { motorDe } from '../motores/index.js'
 import { registrarRespuesta } from '../lib/respuestas.js'
@@ -135,6 +136,12 @@ export default function Quiz({ clase, participante, progreso, onMarcar }) {
             {pregunta.enunciado}
           </h2>
           {pregunta.aviso && <p className="hecho__aviso">({pregunta.aviso})</p>}
+          {/* Va debajo del enunciado y no encima: primero se lee qué se
+              pregunta, después se miran las caras. Al revés son tres fotos
+              sin contexto. */}
+          {pregunta.apoyo && (
+            <Retratos retratos={pregunta.apoyo.retratos} credito={pregunta.apoyo.credito} />
+          )}
         </section>
 
         <form className={motor.claseFormulario} id="respuesta" onSubmit={verificar} noValidate>

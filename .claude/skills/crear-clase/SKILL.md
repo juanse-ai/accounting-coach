@@ -7,7 +7,9 @@ description: Crear o editar una clase de esta app (su presentación de láminas 
 
 Una clase es una fila en `clases` con tres cosas colgando: `laminas` (la
 presentación), `preguntas` (el quiz) y, si el quiz pide armar asientos
-contables, `cuentas` (su plan de cuentas).
+contables, `cuentas` (su plan de cuentas). Una pregunta puede además llevar
+`apoyo`: una fila de caras debajo del enunciado, para cuando la pregunta ES la
+imagen. Está en `referencias/formas.md`.
 
 **El frontend no sabe de ningún tema.** Sabe dibujar seis formas y calificar
 dos tipos de pregunta. Si te dan ganas de tocar `src/` para publicar una clase,
@@ -67,4 +69,5 @@ reescribir las doce láminas de una clase de una sentada.
 | Sale el texto alternativo en vez de la imagen | La URL murió, o es un original de Wikimedia de varios MB que no alcanzó a cargar |
 | Un logo se pierde en el fondo | No lo pusiste en la forma `marcas`, que es la que lleva placa clara |
 | «Esta versión no sabe presentar preguntas de tipo X» | `tipo` no coincide con ningún motor de `src/motores/` |
+| Las caras de una pregunta no aparecen | `clase_completa` no está devolviendo `apoyo`, o la miniatura de Wikimedia pide un ancho que ya no existe |
 | El quiz no muestra el plan de cuentas | Faltan filas en `cuentas` para esa clase |

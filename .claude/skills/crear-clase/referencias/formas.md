@@ -131,8 +131,18 @@ sobrevive a que le corten los bordes; una captura no, porque lo que la hace
    ```
    https://upload.wikimedia.org/wikipedia/commons/thumb/<a>/<ab>/<archivo>/960px-<archivo>
    ```
-   Los SVG no: pesan poco y escalan solos. `generar.mjs --verificar-imagenes`
-   marca cualquier raster de más de 300 KB.
+   **El ancho no es libre.** Wikimedia dejó de generar miniaturas a pedido y
+   ahora responde **400** a un ancho que no esté en su lista; 480, 640 y 800
+   fallan. Los que sirven de forma fiable son **500** (bien para un retrato) y
+   **960** (bien para una foto ancha). Si dudas, pídele el ancho a la API y
+   copia el `thumburl` que devuelva, quitándole los parámetros de rastreo:
+   ```
+   iiprop=imageinfo&iiurlwidth=500
+   ```
+   Un 400 aquí no dice nada del archivo, solo del ancho que pediste.
+
+   Los SVG no llevan miniatura: pesan poco y escalan solos.
+   `generar.mjs --verificar-imagenes` marca cualquier raster de más de 300 KB.
 4. **Wikimedia Commons primero**: estable, libre y con miniaturas. Si te dan una
    URL, úsala igual, pero verifícala.
    Para la interfaz de un producto no vas a encontrar nada ahí: abre el sitio,
@@ -150,3 +160,33 @@ sobrevive a que le corten los bordes; una captura no, porque lo que la hace
 6. **El `alt` describe, no rotula.** «Una tarjeta gráfica NVIDIA con tres
    ventiladores, vista de frente», no «GPU». Cuando la imagen no carga, ese
    texto ocupa su lugar en pantalla: tiene que decir lo que la imagen decía.
+
+
+---
+
+# Fotos en una pregunta
+
+Las formas de arriba son de la presentación. Una pregunta tiene su propio
+apoyo visual, y es uno solo: una fila de caras.
+
+```js
+apoyo: { retratos: [{ src, alt, pie? }], credito? }   // 1 a 6
+```
+
+Vive en la columna `preguntas.apoyo` y lo dibuja `src/componentes/Retratos.jsx`,
+no `Diagramas.jsx`. La separación no es capricho: las formas de la baraja
+pintan con las variables `--dk-*`, que están declaradas sobre `.aprende` y no
+existen fuera del diálogo, así que dibujar una dentro del quiz la dejaría sin
+color.
+
+Sirve cuando la pregunta ES la imagen: «estas tres personas fundaron X, ¿cómo
+se llaman?». Para todo lo demás, el enunciado solo.
+
+- **El `pie` de cada cara es opcional a propósito.** Si la pregunta pide los
+  nombres, rotular las caras es regalar la respuesta. Déjalo fuera.
+- **El `alt` describe sin nombrar**, por lo mismo: «un hombre mayor de pelo y
+  barba blancos, ante un micrófono», no «Chris Malachowsky».
+- **El `credito` es uno solo para toda la fila.** Las fotos de personas suelen
+  ser Creative Commons y de autores distintos, y cada una obliga a acreditar:
+  van todas en esa línea. Si de alguien no hay foto libre, la salida honesta es
+  enseñar las que sí hay y decirlo en la `nota`.

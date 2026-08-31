@@ -38,6 +38,13 @@ repetida y con los signos de una ecuación. Se marca a mano y no tiene casos bor
 La `leyenda` es lo que el lector de pantalla dice entre el texto y la ficha
 («aumentan al»), para que la relación no se pierda.
 
+**Ninguna lámina habla de otra.** «Ahí empieza el problema de la lámina 11»,
+«el sobrante tiene nombre, y es la lámina siguiente», «esto da para media
+clase». Quien está mirando la 4 no sabe qué hay en la 11 ni puede ir a verlo,
+así que la frase no dice nada y encima suena a nota interna del que escribió la
+baraja. Si el punto vale la pena, dilo aquí y completo; si no, bórralo. Vale
+también para el quiz: una `nota` no manda a la pregunta siguiente.
+
 **Los hechos van con fuente y fecha.** Lo que no se puede verificar se rotula
 como supuesto ahí mismo: «cifras de ejemplo; el precio es el reportado».
 
@@ -62,6 +69,15 @@ nunca como lo que hay que recordar.
 
 Prueba rápida: **si la respuesta correcta es un número o un nombre propio, la
 pregunta está mal planteada.** Reescríbela hacia el porqué.
+
+La excepción es cuando el nombre propio es el punto de partida y no el examen:
+quién fundó una empresa, con las caras delante. Ahí se pide un dato de memoria
+a propósito, para anclar la historia antes de razonarla, y lo que salva la
+pregunta son las otras dos piezas. Los distractores tienen que ser gente real
+de la misma historia: Gordon Moore fundó Intel, Lisa Su dirige AMD, Jonathan
+Ross fundó Groq, y equivocarse con cualquiera de ellos enseña algo. Y la `nota`
+tiene que contar por qué ese nombre importa, no repetirlo. Tres de estas en una
+baraja de catorce es el techo; más y el quiz se vuelve trivia.
 
 **Los distractores enseñan.** Los tres que sobran no son relleno: son los
 errores que la gente realmente comete. «Se diluye menos repartiendo la ronda»,
